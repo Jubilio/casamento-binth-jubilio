@@ -11,9 +11,7 @@ const RSVPForm = () => {
     companionName: '',
     attending: '',
     guests: 1,
-    guests: 1,
     message: '',
-    phone: '',
     phone: '',
   });
 
@@ -138,8 +136,8 @@ const RSVPForm = () => {
 
     setIsSubmitting(true);
 
-    // DEV MODE: Skip Firebase for testing
-    const DEV_MODE = true; // Set to false when Firebase is ready
+    // Firebase is now connected and ready to use
+    const DEV_MODE = false; // Set to true only for local testing without Firebase
 
     try {
       // Construct final name: "Principal e Companion" if companion name is provided
@@ -152,7 +150,6 @@ const RSVPForm = () => {
         originalName: validatedGuest?.name || formData.name, // Keep track of original list name
         attending: formData.attending === 'yes',
         guests: parseInt(formData.guests),
-        phone: formData.phone,
         phone: formData.phone,
         message: formData.message,
         guestGroup: validatedGuest?.group || 'Desconhecido',
@@ -195,9 +192,7 @@ const RSVPForm = () => {
           companionName: '',
           attending: '',
           guests: 1,
-          guests: 1,
           message: '',
-          phone: '',
           phone: '',
         });
         setValidatedGuest(null);

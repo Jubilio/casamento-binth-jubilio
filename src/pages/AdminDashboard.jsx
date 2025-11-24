@@ -21,14 +21,12 @@ import SeatingChart from '../components/SeatingChart';
 const AdminDashboard = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [stats, setStats] = useState(null);
+  // Stats are static from JSON, use useMemo instead of state/effect
+  const stats = React.useMemo(() => getGuestStats(), []);
   const [selectedGroup, setSelectedGroup] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [rsvps, setRSVPs] = useState([]);
   const [activeTab, setActiveTab] = useState('overview'); // 'overview', 'seating', 'statistics', 'management'
-
-
-
 
   // Check authentication state
   useEffect(() => {
@@ -43,10 +41,6 @@ const AdminDashboard = () => {
   // Load data after authentication
   useEffect(() => {
     if (isAuthenticated) {
-      // Load static stats
-      const guestStats = getGuestStats();
-      setStats(guestStats);
-
       // Real-time RSVPs listener
       const q = query(collection(db, 'rsvps'), orderBy('timestamp', 'desc'));
       
@@ -58,24 +52,10 @@ const AdminDashboard = () => {
           timestamp: doc.data().timestamp?.toDate() || new Date()
         }));
         
-        // Merge with local storage data (for DEV_MODE)
-        const localData = JSON.parse(localStorage.getItem('mock_rsvps') || '[]').map(item => ({
-          ...item,
-          timestamp: new Date(item.timestamp) // Convert string back to Date
-        }));
-        
-        // Combine and sort
-        const combinedList = [...rsvpList, ...localData].sort((a, b) => b.timestamp - a.timestamp);
-        
-        setRSVPs(combinedList);
+        setRSVPs(rsvpList);
       }, (error) => {
         console.error("Error fetching RSVPs:", error);
-        // Fallback to local storage if Firestore fails
-        const localData = JSON.parse(localStorage.getItem('mock_rsvps') || '[]').map(item => ({
-          ...item,
-          timestamp: new Date(item.timestamp)
-        }));
-        setRSVPs(localData);
+        alert("Erro ao carregar confirmações. Verifique sua conexão.");
       });
 
       return () => unsubscribe();
@@ -127,8 +107,7 @@ const AdminDashboard = () => {
 
         await batch.commit();
         
-        // Also clear local storage
-        localStorage.removeItem('mock_rsvps');
+
         
         alert("Todas as confirmações foram apagadas.");
       } catch (error) {

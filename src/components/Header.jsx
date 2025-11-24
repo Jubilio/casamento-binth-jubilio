@@ -43,7 +43,7 @@ const Header = () => {
     <motion.header
       initial={{ y: -100 }}
       animate={{ y: 0 }}
-      transition={{ duration: 0.5 }}
+      transition={{ duration: 0.3 }}
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
         isScrolled 
           ? 'bg-white/95 backdrop-blur-md shadow-lg' 
@@ -92,7 +92,8 @@ const Header = () => {
           {/* Mobile Menu Button */}
           <button
             onClick={() => setIsOpen(!isOpen)}
-            className="md:hidden text-neutral-gray focus:outline-none"
+            className="md:hidden text-neutral-gray focus:outline-none p-2"
+            aria-label="Menu"
           >
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               {isOpen ? (
@@ -129,7 +130,7 @@ const Header = () => {
                 <div className="flex justify-end p-4">
                   <button
                     onClick={() => setIsOpen(false)}
-                    className="text-neutral-gray hover:text-gold transition-colors"
+                    className="text-neutral-gray hover:text-gold transition-colors p-2"
                   >
                     <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -143,7 +144,7 @@ const Header = () => {
                       key={link.path}
                       initial={{ opacity: 0, x: 20 }}
                       animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: index * 0.1 }}
+                      transition={{ delay: index * 0.05, duration: 0.2 }} // Faster stagger
                     >
                       <Link
                         to={link.path}
@@ -162,7 +163,7 @@ const Header = () => {
                   <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: links.length * 0.1 }}
+                    transition={{ delay: links.length * 0.05, duration: 0.2 }}
                   >
                     <Link
                       to="/rsvp"

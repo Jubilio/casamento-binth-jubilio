@@ -107,13 +107,41 @@ const AdminDashboard = () => {
 
         await batch.commit();
         
-
-        
         alert("Todas as confirmações foram apagadas.");
       } catch (error) {
         console.error("Error clearing RSVPs:", error);
         alert("Erro ao limpar dados. Verifique suas permissões.");
       }
+    }
+  };
+
+  const handleImportGuests = async () => {
+    if (!window.confirm('Deseja importar a lista de convidados do arquivo JSON para o banco de dados? Isso pode duplicar dados se já existirem.')) {
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const batch = writeBatch(db);
+      let count = 0;
+
+      // Import groups/tables
+      for (const group of guestListData.groups) {
+        const groupRef = doc(db, 'guest_groups', group.id);
+        batch.set(groupRef, {
+          ...group,
+          lastUpdated: new Date()
+        });
+        count++;
+      }
+
+      await batch.commit();
+      alert(`Sucesso! ${count} grupos/mesas importados para o banco de dados.`);
+    } catch (error) {
+      console.error("Erro ao importar:", error);
+      alert("Erro ao importar lista. Veja o console para detalhes.");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -167,6 +195,12 @@ const AdminDashboard = () => {
             <p className="text-gray-600">Gestão de convidados e confirmações</p>
           </div>
           <div className="flex gap-3">
+            <button
+              onClick={handleImportGuests}
+              className="bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600 transition-all flex items-center gap-2"
+            >
+              📥 Importar Lista
+            </button>
             <button
               onClick={handleClearAllRSVPs}
               className="bg-orange-500 text-white px-6 py-2 rounded-lg hover:bg-orange-600 transition-all flex items-center gap-2"

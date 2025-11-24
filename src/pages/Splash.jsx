@@ -9,7 +9,7 @@ const Splash = () => {
 
   useEffect(() => {
     // Create audio element
-    audioRef.current = new Audio('https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3');
+    audioRef.current = new Audio('/music/someday.mp3');
     audioRef.current.loop = true;
 
     return () => {

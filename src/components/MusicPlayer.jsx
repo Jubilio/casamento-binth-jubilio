@@ -1,23 +1,27 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { motion } from 'framer-motion';
 
 const MusicPlayer = () => {
-  const [isPlaying, setIsPlaying] = useState(false);
+  // Initialize state from localStorage to avoid setState in useEffect
+  const [isPlaying, setIsPlaying] = useState(() => {
+    const savedPreference = localStorage.getItem('musicPlaying');
+    return savedPreference === 'true';
+  });
+  
   const audioRef = useRef(new Audio('https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3')); // Placeholder URL
 
   useEffect(() => {
-    const savedPreference = localStorage.getItem('musicPlaying');
-    if (savedPreference === 'true') {
-      setIsPlaying(true);
-      audioRef.current.play().catch(error => console.log("Autoplay prevented:", error));
+    const audio = audioRef.current;
+    audio.loop = true;
+
+    // Auto-play if preference is set
+    if (isPlaying) {
+      audio.play().catch(error => console.log("Autoplay prevented:", error));
     }
 
-    audioRef.current.loop = true;
-
     return () => {
-      audioRef.current.pause();
+      audio.pause();
     };
-  }, []);
+  }, [isPlaying]);
 
   const togglePlay = () => {
     if (isPlaying) {
@@ -32,11 +36,9 @@ const MusicPlayer = () => {
 
   return (
     <div className="fixed bottom-4 right-4 z-50">
-      <motion.button
-        whileHover={{ scale: 1.1 }}
-        whileTap={{ scale: 0.9 }}
+      <button
         onClick={togglePlay}
-        className="bg-gold text-white p-3 rounded-full shadow-lg hover:bg-opacity-90 transition-all flex items-center justify-center w-12 h-12"
+        className="bg-gold text-white p-3 rounded-full shadow-lg hover:bg-opacity-90 hover:scale-110 active:scale-90 transition-all flex items-center justify-center w-12 h-12"
         aria-label={isPlaying ? "Pausar música" : "Tocar música"}
       >
         {isPlaying ? (
@@ -49,7 +51,7 @@ const MusicPlayer = () => {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
         )}
-      </motion.button>
+      </button>
     </div>
   );
 };

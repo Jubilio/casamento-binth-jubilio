@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
 import { collection, addDoc } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { searchGuest, validateGuest, parseCompanionName } from '../utils/guestUtils';

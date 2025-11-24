@@ -1,81 +1,105 @@
-# Binth & Jubílio - Site de Casamento
+# Projeto Convite de Casamento
 
-Este é o site oficial do casamento de Binth & Jubílio, desenvolvido com React, Vite e Tailwind CSS. O projeto apresenta um design elegante e minimalista, com funcionalidades como RSVP, galeria de fotos e informações sobre o evento.
+## Visão Geral
 
-## 🎨 Identidade Visual
+Este é um site interativo de convite de casamento desenvolvido com **React** e **Vite**, hospedado no **Netlify** e integrado ao **Firebase** (Firestore, Auth, Storage). Ele oferece:
 
-- **Tema:** Elegante Minimalista
-- **Cores:** Branco, Dourado Suave (#C8A86A), Preto e Cinza Neutro
-- **Fontes:** Playfair Display (Títulos) e Inter (Corpo)
+- Tela de boas‑vindas com animações e música de fundo.
+- Navegação responsiva (desktop e mobile) usando **framer‑motion**.
+- Formulário de RSVP que grava respostas no Firestore.
+- Dashboard administrativo para visualização e gerenciamento de convidados.
+- Geração de convite em PNG/PDF e botão para adicionar ao Google Calendar.
 
-## 🚀 Tecnologias Utilizadas
+## Tecnologias Principais
 
-- [React](https://reactjs.org/)
-- [Vite](https://vitejs.dev/)
-- [Tailwind CSS](https://tailwindcss.com/)
-- [React Router](https://reactrouter.com/)
-- [Framer Motion](https://www.framer.com/motion/)
-- [Firebase](https://firebase.google.com/) (Opcional para RSVP)
+- **Frontend**: React, Vite, JavaScript, HTML, CSS (vanilla).
+- **Animações**: framer‑motion.
+- **Backend / Serviços**: Firebase (Firestore, Auth, Storage).
+- **Hospedagem**: Netlify (CI/CD, CSP, cache).
+- **Utilitários**: html2canvas, jspdf, lucide‑react.
 
-## 🛠️ Instalação e Configuração
+## Estrutura de Pastas
 
-1.  **Clone o repositório:**
+```text
+src/
+ ├─ components/          # Componentes reutilizáveis (Header, MusicPlayer, RSVPForm, etc.)
+ ├─ pages/               # Páginas da aplicação (Splash, Home, RSVP, AdminDashboard)
+ ├─ lib/                 # Configuração Firebase (firebase.js)
+ ├─ utils/               # Funções auxiliares (guestUtils.js)
+ └─ main.jsx, index.html
+public/
+ └─ music/someday.mp3   # Música de fundo (deve existir)
+```
 
-    ```bash
-    git clone <seu-repositorio>
-    cd convite
-    ```
+## Configuração e Execução Local
 
-2.  **Instale as dependências:**
+1. **Instalar dependências**
 
-    ```bash
-    npm install
-    ```
+```bash
+npm install
+```
 
-3.  **Inicie o servidor de desenvolvimento:**
-    ```bash
-    npm run dev
-    ```
+2. **Variáveis de ambiente** (criar `.env.local` na raiz):
 
-## ⚙️ Configuração do Firebase (Opcional)
+```env
+VITE_FIREBASE_API_KEY=...
+VITE_FIREBASE_AUTH_DOMAIN=...
+VITE_FIREBASE_PROJECT_ID=...
+VITE_FIREBASE_STORAGE_BUCKET=...
+VITE_FIREBASE_MESSAGING_SENDER_ID=...
+VITE_FIREBASE_APP_ID=...
+```
 
-Para habilitar o salvamento real de RSVPs no banco de dados:
+3. **Rodar em modo desenvolvimento**
 
-1.  Crie um projeto no [Firebase Console](https://console.firebase.google.com/).
-2.  Crie um banco de dados **Firestore**.
-3.  Crie um arquivo `.env` na raiz do projeto com suas credenciais:
-    ```env
-    VITE_FIREBASE_API_KEY=sua_api_key
-    VITE_FIREBASE_AUTH_DOMAIN=seu_projeto.firebaseapp.com
-    VITE_FIREBASE_PROJECT_ID=seu_projeto
-    VITE_FIREBASE_STORAGE_BUCKET=seu_projeto.appspot.com
-    VITE_FIREBASE_MESSAGING_SENDER_ID=seu_id
-    VITE_FIREBASE_APP_ID=seu_app_id
-    ```
-4.  Descomente as linhas de importação e configuração no arquivo `src/components/RSVPForm.jsx`.
+```bash
+npm run dev
+```
 
-## 📦 Deploy no Netlify
+A aplicação estará disponível em `http://localhost:5173`.
 
-1.  Crie uma conta no [Netlify](https://www.netlify.com/).
-2.  Arraste a pasta `dist` (gerada após rodar `npm run build`) para o painel do Netlify OU conecte seu repositório GitHub para deploy contínuo.
-3.  Nas configurações de build do Netlify:
-    - **Build command:** `npm run build`
-    - **Publish directory:** `dist`
+## Deploy
 
-## 🖼️ Personalização
+- **Netlify**: o comando de build configurado é `npm run build`. O diretório de publicação é `dist`.
+- **Cache & CSP**: configurado em `netlify.toml` (assets imutáveis, CSP inclui `firestore.googleapis.com`).
+- **Chunk Splitting**: configurado em `vite.config.js` para separar `vendor` e `firebase`.
 
-- **Imagens:** Substitua as URLs de imagem nos componentes (`Home.jsx`, `Gallery.jsx`) por suas próprias fotos ou coloque arquivos na pasta `public/` e referencie-os.
-- **Música:** Substitua a URL da música em `src/components/MusicPlayer.jsx`.
-- **Textos:** Edite os textos diretamente nos arquivos das páginas em `src/pages/`.
+## Principais Componentes
 
-## 🌐 Domínio Personalizado
+| Componente | Função |
+|------------|--------|
+| `Header.jsx` | Navbar responsiva com animações (`motion`, `AnimatePresence`). |
+| `MusicPlayer.jsx` | Botão flutuante para tocar/pausar música, persiste estado via `localStorage`. |
+| `Splash.jsx` | Tela inicial com botão que inicia a música. |
+| `RSVPForm.jsx` | Formulário de confirmação, validação e gravação no Firestore. |
+| `InvitationCard.jsx` | Renderiza convite e permite download PNG/PDF. |
+| `AdminDashboard.jsx` | Área administrativa (visualização em tempo real, importação de lista, estatísticas). |
+| `firebase.js` | Inicializa Firebase a partir das variáveis de ambiente. |
 
-Para usar um domínio como `binthandjubilio.com`:
+## Firebase
 
-1.  Compre o domínio em um registrador (Namecheap, GoDaddy, etc.).
-2.  No painel do Netlify, vá em **Domain Management** > **Add custom domain**.
-3.  Siga as instruções de configuração de DNS fornecidas pelo Netlify.
+- **Firestore**: coleção `rsvps` para respostas de convidados.
+- **Auth**: login de administradores via email/senha.
+- **Storage**: (opcional) para arquivos de mídia.
+- **firestore.indexes.json**: agora contém JSON válido (`{"indexes": [], "fieldOverrides": []}`).
+
+## Netlify
+
+- **CSP** inclui `https://firestore.googleapis.com`.
+- **Headers de cache**: assets (`max-age=31536000, immutable`), `index.html` (`must-revalidate`).
+- **Redirects**: SPA fallback (`/*  /index.html  200`).
+
+## Testes e Qualidade
+
+- **Lint**: ESLint configurado; comentários desnecessários removidos.
+- **Sugestão**: adicionar testes unitários com Jest + React Testing Library para `RSVPForm`, `MusicPlayer` e `AdminDashboard`.
+
+## Como Contribuir
+
+1. Fork o repositório.
+2. Crie uma branch `feature/SEU-NOME`.
+3. Rode `npm test` (quando houver testes) e `npm run lint`.
+4. Abra um Pull Request descrevendo a mudança.
 
 ---
-
-Feito com ❤️ para Binth & Jubílio.
+*Este documento foi gerado automaticamente por Antigravity.*

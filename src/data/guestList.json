@@ -5,20 +5,20 @@
       "name": "Jubílio 1 - Wimbi",
       "maxGuests": 10,
       "guests": [
-        "Stelio e Esposa",
-        "Basílio e Esposa",
-        "Domingos e Esposa",
-        "Eduardo e Esposa",
-        "Adonísio e Esposa"
+        "Stelio e Acompanhante",
+        "Basílio e Acompanhante",
+        "Domingos e Acompanhante",
+        "Eduardo e Acompanhante",
+        "Adonísio e Acompanhante"
       ]
     },
     {
       "id": "binth-2-maringanha",
       "name": "Binth 2 - Maringanha",
-      "maxGuests": 5,
+      "maxGuests": 10,
       "guests": [
-        "Gilda e Esposa",
-        "Ana e Esposa",
+        "Gilda e Acompanhante",
+        "Ana e Acompanhante",
         "Jéssica",
         "Marla",
         "Milma",
@@ -30,38 +30,38 @@
     {
       "id": "binth-1-paquirequete",
       "name": "Binth 1 - Paquitequete",
-      "maxGuests": 5,
+      "maxGuests": 10,
       "guests": [
-        "Lito e Esposa",
-        "Denise e Esposo",
-        "Felipe e Esposa",
-        "Jéssica e Esposo",
-        "Bia e Esposo"
+        "Lito e Acompanhante",
+        "Denise e Acompanhante",
+        "Felipe e Acompanhante",
+        "Jéssica e Acompanhante",
+        "Bia e Acompanhante"
       ]
     },
     {
       "id": "binth-5-mahate",
       "name": "Binth 5 - Mahate",
-      "maxGuests": 5,
+      "maxGuests": 10,
       "guests": [
         "Papá",
         "Tia Teu",
-        "Tia Paula e Esposo",
-        "Tia Bernadete e Esposo",
+        "Tia Paula e Acompanhante",
+        "Tia Bernadete e Acompanhante",
         "Martinho",
-        "Aninha e Esposo"
+        "Aninha e Acompanhante"
       ]
     },
     {
       "id": "binth-7-napica",
       "name": "Binth 7 - Napica",
-      "maxGuests": 5,
-      "guests": ["", "", "", "", ""]
+      "maxGuests": 10,
+      "guests": []
     },
     {
       "id": "binth-10-kiddos",
       "name": "Binth 10 (Kiddos)",
-      "maxGuests": 5,
+      "maxGuests": 10,
       "guests": [
         "Rozy",
         "Naila",
@@ -78,39 +78,39 @@
     {
       "id": "binth-jubilio-natite",
       "name": "Binth e Jubílio - Natite",
-      "maxGuests": 5,
+      "maxGuests": 10,
       "guests": [
-        "Jalane e Esposa",
+        "Jalane e Acompanhante",
         "Lucas",
         "Horácio",
         "Cláudia",
-        "Naira e Esposo",
-        "Moisés e Esposa",
+        "Naira e Acompanhante",
+        "Moisés e Acompanhante",
         "Emilia"
       ]
     },
     {
       "id": "binth-6-familia-nanhimbe",
       "name": "Binth 6 (Família) - Nanhimbe",
-      "maxGuests": 5,
+      "maxGuests": 10,
       "guests": [
         "Mamã",
         "Lídia",
-        "Graça e Esposo",
-        "Odília e Esposo",
-        "Zeca e Esposa",
-        "Evinha e Esposo"
+        "Graça e Acompanhante",
+        "Odília e Acompanhante",
+        "Zeca e Acompanhante",
+        "Evinha e Acompanhante"
       ]
     },
     {
       "id": "binth-jubilio-expansao",
       "name": "Binth e Jubílio - Expansão",
-      "maxGuests": 5,
+      "maxGuests": 10,
       "guests": [
-        "Jamisse e Esposa",
-        "Judite e Esposo",
-        "Domingos e Esposa",
-        "Manjate e Esposa",
+        "Jamisse e Acompanhante",
+        "Judite e Acompanhante",
+        "Domingos e Acompanhante",
+        "Manjate e Acompanhante",
         "Ana Maria",
         "Natalia"
       ]
@@ -118,37 +118,36 @@
     {
       "id": "binth-jubilio-cariaco",
       "name": "Binth e Jubílio - Cariaco",
-      "maxGuests": 5,
+      "maxGuests": 10,
       "guests": [
-        "Vovó Ismael e Esposa",
+        "Vovó Ismael e Acompanhante",
         "Tio Selmo",
-        "Preciosa e Esposo",
-        "Lili",
-        ""
+        "Preciosa e Acompanhante",
+        "Lili"
       ]
     },
     {
       "id": "binth-4-ingoanne",
       "name": "Binth 4 - Ingoanne",
-      "maxGuests": 5,
+      "maxGuests": 10,
       "guests": [
-        "Cátia e Esposo",
-        "Ilsio e Esposa",
+        "Cátia e Acompanhante",
+        "Ilsio e Acompanhante",
         "Manuel",
-        "Juvêncio e Esposa",
-        "Marieta e Esposo",
+        "Juvêncio e Acompanhante",
+        "Marieta e Acompanhante",
         "Lídia"
       ]
     },
     {
       "id": "jubilio-3-chuiba",
       "name": "Jubílio 3 - Chuíba",
-      "maxGuests": 5,
+      "maxGuests": 10,
       "guests": [
-        "Filomena e Esposo",
-        "Aventina e Esposo",
-        "Sandra e Esposo",
-        "Abraao e Esposa",
+        "Filomena e Acompanhante",
+        "Aventina e Acompanhante",
+        "Sandra e Acompanhante",
+        "Abraao e Acompanhante",
         "Angelica",
         "Benevolencia"
       ]
@@ -156,48 +155,46 @@
     {
       "id": "jubilio-4-mama-muxara",
       "name": "Jubílio 4 (Mamã) - Muxara",
-      "maxGuests": 5,
+      "maxGuests": 10,
       "guests": [
-        "Mamã e Esposa",
-        "Mira e Esposo",
-        "Santos e Esposa",
-        "Santos e Esposa",
-        "Gilda e Esposo"
+        "Mamã e Acompanhante",
+        "Mira e Acompanhante",
+        "Santos e Acompanhante",
+        "Gilda e Acompanhante"
       ]
     },
     {
       "id": "jubilio-6-metula",
       "name": "Jubílio 6 - Metula",
-      "maxGuests": 5,
+      "maxGuests": 10,
       "guests": [
-        "Diamantino e Esposa",
+        "Diamantino e Acompanhante",
         "Leonor",
         "Miguel",
         "Shélia",
         "Laura",
         "Clésia",
         "Dantíbio",
-        "Diamantino",
         "Marcelo"
       ]
     },
     {
       "id": "jubilio-5-papa-gigone",
       "name": "Jubílio 5 (Papá) - Gigone",
-      "maxGuests": 5,
+      "maxGuests": 10,
       "guests": [
-        "Papá e Esposa",
+        "Papá e Acompanhante",
         "Avó",
         "Tia Rosinha",
-        "Deolmestre e Esposa",
-        "Armando e Esposa",
-        "Maurício e Esposa"
+        "Deolmestre e Acompanhante",
+        "Armando e Acompanhante",
+        "Maurício e Acompanhante"
       ]
     },
     {
       "id": "binth-9-muharia",
       "name": "Binth 9 - Muharia",
-      "maxGuests": 5,
+      "maxGuests": 10,
       "guests": [
         "Júnior",
         "Liane",

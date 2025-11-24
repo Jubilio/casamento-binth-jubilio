@@ -226,21 +226,33 @@ const RSVPForm = () => {
                 Obrigado por confirmar sua presença. Seu convite personalizado está pronto!
               </p>
               
-              <a
-                href={`https://wa.me/?text=${encodeURIComponent(
-                  `Olá! Confirmo minha presença no casamento de Binth & Jubílio! 💍\n\nNome: ${
-                    (hasCompanion && formData.companionName.trim()) 
-                      ? `${formData.name} e ${formData.companionName.trim()}` 
-                      : formData.name
-                  }\nMesa: ${validatedGuest?.group || 'A definir'}\n\nEstou muito feliz em fazer parte deste momento! ✨`
-                )}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-xl font-semibold transition-colors mt-2"
-              >
-                <span>📱</span>
-                Enviar Comprovativo no WhatsApp
-              </a>
+              <div className="flex flex-col sm:flex-row gap-3 justify-center mt-6">
+                <a
+                  href={`https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent('Casamento de Binth & Jubílio')}&dates=20260307T100000/20260307T220000&details=${encodeURIComponent('Celebrar o amor de Binth & Jubílio! ❤️\n\nConfira mais detalhes no site: https://binthjubilio.netlify.app/')}&location=${encodeURIComponent('Maputo, Moçambique')}&sf=true&output=xml`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl font-semibold transition-colors shadow-md hover:shadow-lg"
+                >
+                  <span>📅</span>
+                  Adicionar ao Calendário
+                </a>
+
+                <a
+                  href={`https://wa.me/?text=${encodeURIComponent(
+                    `Olá! Confirmo minha presença no casamento de Binth & Jubílio! 💍\n\nNome: ${
+                      (hasCompanion && formData.companionName.trim()) 
+                        ? `${formData.name} e ${formData.companionName.trim()}` 
+                        : formData.name
+                    }\nMesa: ${validatedGuest?.group || 'A definir'}\n\nEstou muito feliz em fazer parte deste momento! ✨`
+                  )}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-xl font-semibold transition-colors shadow-md hover:shadow-lg"
+                >
+                  <span>📱</span>
+                  Enviar no WhatsApp
+                </a>
+              </div>
             </div>
             
             <InvitationCard

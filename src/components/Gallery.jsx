@@ -65,7 +65,7 @@ const Gallery = () => {
             viewport={{ once: true }}
             transition={{ delay: index * 0.1 }}
             whileHover={{ scale: 1.02 }}
-            className="relative overflow-hidden rounded-2xl shadow-lg cursor-pointer group break-inside-avoid mb-6"
+            className="relative overflow-hidden rounded-2xl shadow-lg cursor-pointer group break-inside-avoid mb-6 hover-lift"
             onClick={() => openLightbox(index)}
           >
             <img

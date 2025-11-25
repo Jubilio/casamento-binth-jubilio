@@ -113,7 +113,7 @@ const Countdown = ({ targetDate }) => {
         >
           <p className="text-gold font-serif text-base mb-2">Faltam apenas</p>
           <p className="text-7xl font-bold text-gold font-serif mb-2">{timeLeft.days}</p>
-          <p className="text-gold font-serif text-lg">dias para o grande dia! 💕</p>
+          <p className="text-gold font-serif text-lg">dias para o grande dia! <span className="inline-block animate-heart-beat">💕</span></p>
         </motion.div>
       )}
     </div>

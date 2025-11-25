@@ -1,0 +1,196 @@
+/* Visual Polish - Enhanced gradients, shadows, and effects */
+
+/* Sophisticated gradient backgrounds */
+.gradient-hero {
+  background: linear-gradient(
+    135deg,
+    #fdfbf7 0%,
+    #fffaf5 25%,
+    #fff5f0 50%,
+    #ffe9e0 75%,
+    #ffd9cc 100%
+  );
+}
+
+.gradient-gold-shine {
+  background: linear-gradient(
+    135deg,
+    #d4af37 0%,
+    #f4d03f 50%,
+    #d4af37 100%
+  );
+}
+
+.gradient-text-gold {
+  background: linear-gradient(135deg, #d4af37 0%, #f4d03f 50%, #d4af37 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Premium shadow system */
+.shadow-soft {
+  box-shadow: 
+    0 2px 8px rgba(0, 0, 0, 0.04),
+    0 4px 16px rgba(0, 0, 0, 0.06);
+}
+
+.shadow-medium {
+  box-shadow: 
+    0 4px 12px rgba(0, 0, 0, 0.06),
+    0 8px 24px rgba(0, 0, 0, 0.08);
+}
+
+.shadow-strong {
+  box-shadow: 
+    0 8px 24px rgba(0, 0, 0, 0.08),
+    0 16px 48px rgba(0, 0, 0, 0.12);
+}
+
+.shadow-gold {
+  box-shadow: 
+    0 4px 16px rgba(212, 175, 55, 0.15),
+    0 8px 32px rgba(212, 175, 55, 0.1);
+}
+
+.shadow-gold-strong {
+  box-shadow: 
+    0 8px 24px rgba(212, 175, 55, 0.2),
+    0 16px 48px rgba(212, 175, 55, 0.15);
+}
+
+/* Glassmorphism effects */
+.glass {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.glass-dark {
+  background: rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Enhanced text styles */
+.text-premium {
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+
+.text-elegant {
+  font-weight: 300;
+  letter-spacing: 0.05em;
+  line-height: 1.6;
+}
+
+/* Smooth borders */
+.border-premium {
+  border: 2px solid transparent;
+  background-image: 
+    linear-gradient(white, white),
+    linear-gradient(135deg, #d4af37, #f4d03f);
+  background-origin: border-box;
+  background-clip: padding-box, border-box;
+}
+
+/* Overlay gradients */
+.overlay-gradient-dark {
+  background: linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0) 0%,
+    rgba(0, 0, 0, 0.4) 100%
+  );
+}
+
+.overlay-gradient-light {
+  background: linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.9) 100%
+  );
+}
+
+/* Refined spacing utilities */
+.section-spacing {
+  padding-top: 5rem;
+  padding-bottom: 5rem;
+}
+
+@media (min-width: 768px) {
+  .section-spacing {
+    padding-top: 7rem;
+    padding-bottom: 7rem;
+  }
+}
+
+/* Premium focus states */
+.focus-premium:focus {
+  outline: none;
+  box-shadow: 
+    0 0 0 3px rgba(212, 175, 55, 0.1),
+    0 0 0 6px rgba(212, 175, 55, 0.05);
+  transform: scale(1.02);
+}
+
+/* Smooth transitions */
+.transition-premium {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.transition-smooth {
+  transition: all 0.4s cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+/* Enhanced hover states for cards */
+.card-premium {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.card-premium:hover {
+  transform: translateY(-4px);
+  box-shadow: 
+    0 12px 32px rgba(0, 0, 0, 0.1),
+    0 24px 64px rgba(0, 0, 0, 0.15);
+}
+
+/* Subtle patterns */
+.pattern-dots {
+  background-image: radial-gradient(circle, rgba(212, 175, 55, 0.05) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+.pattern-lines {
+  background-image: linear-gradient(
+    45deg,
+    rgba(212, 175, 55, 0.03) 25%,
+    transparent 25%,
+    transparent 75%,
+    rgba(212, 175, 55, 0.03) 75%
+  );
+  background-size: 40px 40px;
+}
+
+/* Dividers with style */
+.divider-gold {
+  height: 2px;
+  background: linear-gradient(
+    to right,
+    transparent 0%,
+    #d4af37 50%,
+    transparent 100%
+  );
+}
+
+.divider-fade {
+  height: 1px;
+  background: linear-gradient(
+    to right,
+    transparent 0%,
+    rgba(0, 0, 0, 0.1) 50%,
+    transparent 100%
+  );
+}

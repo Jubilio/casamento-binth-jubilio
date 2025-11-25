@@ -84,7 +84,7 @@ const Header = () => {
             ))}
             <Link
               to="/rsvp"
-              className="bg-gold text-white px-6 py-2 rounded-full hover:bg-opacity-90 transition-all hover:scale-105 hover:shadow-lg"
+              className="bg-gold text-white px-6 py-2 rounded-full hover:bg-opacity-90 transition-all hover:scale-105 hover:shadow-lg btn-ripple hover-lift"
             >
               RSVP
             </Link>

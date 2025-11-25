@@ -23,7 +23,6 @@ import Contato from './pages/Contato';
 // Lazy load heavy/secondary pages
 const AdminDashboard = lazy(() => import('./pages/AdminDashboard'));
 const Galeria = lazy(() => import('./pages/Galeria'));
-const PhotoBooth = lazy(() => import('./pages/PhotoBooth'));
 const Presentes = lazy(() => import('./pages/Presentes'));
 const MessagesWall = lazy(() => import('./pages/MessagesWall'));
 
@@ -83,30 +82,25 @@ const AppContent = () => {
               <Route path="/evento" element={<Evento />} />
               <Route path="/rsvp" element={<RSVP />} />
               <Route path="/galeria" element={
-                <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gold"></div></div>}>
+                <Suspense fallback={<LoadingSkeleton type="gallery" />}>
                   <Galeria />
                 </Suspense>
               } />
               <Route path="/presentes" element={
-                <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gold"></div></div>}>
+                <Suspense fallback={<LoadingSkeleton type="page" />}>
                   <Presentes />
                 </Suspense>
               } />
               <Route path="/contato" element={<Contato />} />
-              <Route path="/photo-booth" element={
-                <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gold"></div></div>}>
-                  <PhotoBooth />
-                </Suspense>
-              } />
               <Route path="/mensagens" element={
-                <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gold"></div></div>}>
+                <Suspense fallback={<LoadingSkeleton type="page" />}>
                   <MessagesWall />
                 </Suspense>
               } />
               <Route 
                 path="/gestao-casamento-2026" 
                 element={
-                  <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gold"></div></div>}>
+                  <Suspense fallback={<LoadingSkeleton type="dashboard" />}>
                     <AdminDashboard />
                   </Suspense>
                 } 

@@ -17,6 +17,7 @@ import guestListData from '../data/guestList.json';
 import AdminLogin from '../components/AdminLogin';
 import TableManagement from '../components/TableManagement';
 import SeatingChart from '../components/SeatingChart';
+import EmptyState from '../components/EmptyState';
 
 const AdminDashboard = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);

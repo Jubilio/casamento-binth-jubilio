@@ -3,10 +3,15 @@ import { createClient } from '@supabase/supabase-js';
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-if (!supabaseUrl || !supabaseAnonKey || supabaseAnonKey === 'SUA_CHAVE_ANON_AQUI') {
+if (!supabaseUrl || !supabaseAnonKey || supabaseAnonKey.includes('VITE_') || supabaseAnonKey.startsWith('sb_')) {
+  const isStripeKey = supabaseAnonKey?.startsWith('sb_');
   console.error(
-    'ERRO: Variáveis do Supabase não configuradas no arquivo .env!\n' +
-    'Certifique-se de definir VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY.'
+    'ERRO: Variáveis do Supabase não configuradas corretamente no arquivo .env!\n' +
+    (isStripeKey 
+      ? 'AVISO: Você parece estar usando uma chave do STRIPE (sb_...) no lugar da chave do SUPABASE.\n' 
+      : '') +
+    'Certifique-se de definir VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY.\n' +
+    'A Anon Key do Supabase geralmente começa com "eyJ...".'
   );
 }
 

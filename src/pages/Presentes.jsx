@@ -1,5 +1,5 @@
 import React from 'react';
-import { motion } from 'framer-motion';
+import { motion } from 'framer-motion'; // eslint-disable-line no-unused-vars
 
 const Presentes = () => {
   const giftCategories = [
@@ -76,11 +76,19 @@ const Presentes = () => {
                 </svg>
               </div>
               <h3 className="text-xl font-serif text-neutral-gray mb-4">Transferência Bancária</h3>
-              <div className="space-y-2 text-gray-600 text-sm">
-                <p><span className="font-bold">Banco:</span> Millennium BIM</p>
-                <p><span className="font-bold">Titular:</span> Jubílio & Binth</p>
-                <p><span className="font-bold">Conta:</span> 123456789</p>
-                <p><span className="font-bold">NIB:</span> 000100001234567890123</p>
+              <div className="space-y-4 text-gray-600 text-sm">
+                <div>
+                  <p className="font-bold text-xs uppercase tracking-wider text-gold mb-1">Conta Jubílio</p>
+                  <p><span className="font-bold">Banco:</span> Millennium BIM</p>
+                  <p><span className="font-bold">Titular:</span> Jubílio Maússe</p>
+                  <p><span className="font-bold">NIB:</span> 000100000040665901857</p>
+                </div>
+                <div className="pt-4 border-t border-gray-100">
+                  <p className="font-bold text-xs uppercase tracking-wider text-gold mb-1">Conta Binth</p>
+                  <p><span className="font-bold">Banco:</span> Millennium BIM</p>
+                  <p><span className="font-bold">Titular:</span> BINTH MARIO BUQUE</p>
+                  <p><span className="font-bold">NIB:</span> 000100000067862965557</p>
+                </div>
               </div>
             </div>
 

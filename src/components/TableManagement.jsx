@@ -1,196 +1,191 @@
 import React, { useState } from 'react';
-import { motion } from 'framer-motion';
-import { doc, updateDoc } from 'firebase/firestore';
-import { db } from '../lib/firebase';
-import guestListData from '../data/guestList.json';
+import { User, Users, Move, CheckCircle, HelpCircle } from 'lucide-react';
+import toast from 'react-hot-toast';
+import { supabase } from '../lib/supabase';
 
-const TableManagement = ({ rsvps }) => {
-  const [selectedGuest, setSelectedGuest] = useState(null);
-  const [targetTable, setTargetTable] = useState(null);
-  const [isMoving, setIsMoving] = useState(false);
-  const [error, setError] = useState('');
-  const [successMsg, setSuccessMsg] = useState('');
+const TableManagement = ({ rsvps, guestGroups }) => {
+  const [selectedRsvp, setSelectedRsvp] = useState(null);
 
-  // Get all tables (groups)
-  const tables = guestListData.groups;
+  // Tables are our Invites (using their labels)
+  const tables = guestGroups || [];
 
-  // Helper to get guests for a specific table
-  const getTableGuests = (tableName) => {
-    return rsvps.filter(r => r.attending && r.guestGroup === tableName);
+  // Categorize RSVPs
+  const confirmedRSVPs = rsvps.filter(r => r.attending);
+  
+  // Get guests assigned to a specific table (via tableAssignment column)
+  const getTableGuests = (tableLabel) => {
+    return confirmedRSVPs.filter(r => r.tableAssignment === tableLabel);
   };
 
-  // Helper to get table capacity status
-  const getTableStatus = (tableName, maxGuests) => {
-    const currentGuests = getTableGuests(tableName).reduce((sum, r) => sum + r.guests, 0);
-    return {
-      current: currentGuests,
-      max: maxGuests,
-      isFull: currentGuests >= maxGuests,
-      available: maxGuests - currentGuests
-    };
-  };
+  // RSVPs not yet assigned to a table
+  const unassignedRSVPs = confirmedRSVPs.filter(r => !r.tableAssignment);
 
-  const handleMoveGuest = async (tableId, tableName, maxGuests) => {
-    if (!selectedGuest) return;
-
-    setError('');
-    setSuccessMsg('');
-
-    // Check if trying to move to same table
-    if (selectedGuest.guestGroup === tableName) {
-      setError('O convidado já está nesta mesa.');
-      return;
-    }
-
-    // Check capacity
-    const status = getTableStatus(tableName, maxGuests);
-    if (status.current + selectedGuest.guests > maxGuests) {
-      setError(`Mesa cheia! Capacidade: ${maxGuests}, Disponível: ${status.available}, Necessário: ${selectedGuest.guests}`);
-      return;
-    }
-
-    setIsMoving(true);
+  const handleAssignToTable = async (tableLabel) => {
+    if (!selectedRsvp) return;
 
     try {
-      const rsvpRef = doc(db, 'rsvps', selectedGuest.id);
-      
-      await updateDoc(rsvpRef, {
-        guestGroup: tableName,
-        groupId: tableId, // Update ID as well for consistency
-        lastModified: new Date()
-      });
+      const { error } = await supabase
+        .from('rsvps')
+        .update({ table_assignment: tableLabel })
+        .eq('id', selectedRsvp.id);
 
-      setSuccessMsg(`✅ ${selectedGuest.name} movido para ${tableName}`);
-      setSelectedGuest(null);
-      setTargetTable(null);
+      if (error) throw error;
+
+      toast.success(`✅ ${selectedRsvp.guestName} atribuído(a) à ${tableLabel}`);
+      setSelectedRsvp(null);
     } catch (err) {
-      console.error("Error moving guest:", err);
-      setError('Erro ao mover convidado. Tente novamente.');
+      console.error("Error updating assignment:", err);
+      toast.error("Erro ao atribuir mesa.");
     } finally {
-      setIsMoving(false);
-      // Clear success message after 3 seconds
-      setTimeout(() => setSuccessMsg(''), 3000);
+      // Done
+    }
+  };
+
+  const handleUnassign = async (rsvpId) => {
+    try {
+      const { error } = await supabase
+        .from('rsvps')
+        .update({ table_assignment: null })
+        .eq('id', rsvpId);
+
+      if (error) throw error;
+      toast.success(`✅ Convidado removido da mesa.`);
+    } catch (err) {
+      console.error("Error unassigning:", err);
+      toast.error("Erro ao remover da mesa.");
+    } finally {
+        // Done
     }
   };
 
   return (
-    <div className="space-y-6">
-      {/* Header / Status Bar */}
-      <div className="bg-white rounded-2xl shadow-lg p-6 sticky top-4 z-10">
+    <div className="space-y-8 pb-20">
+      {/* Header & Feedback */}
+      <div className="bg-white rounded-2xl shadow-lg p-6 border-l-4 border-gold">
         <div className="flex flex-col md:flex-row justify-between items-center gap-4">
           <div>
-            <h2 className="text-2xl font-serif text-neutral-gray">Gestão de Mesas</h2>
-            <p className="text-gray-600 text-sm">Selecione um convidado para mover de mesa</p>
+            <h2 className="text-2xl font-bold text-gray-800">Organização de Assentos</h2>
+            <p className="text-gray-500">Distribua os convidados confirmados pelas mesas (Labels)</p>
           </div>
-          
-          {selectedGuest && (
-            <div className="flex items-center gap-4 bg-blue-50 px-4 py-2 rounded-lg border border-blue-200 animate-pulse">
-              <div>
-                <p className="text-xs text-blue-600 font-semibold uppercase">Selecionado:</p>
-                <p className="font-bold text-blue-800">{selectedGuest.name}</p>
-              </div>
-              <button 
-                onClick={() => setSelectedGuest(null)}
-                className="text-gray-400 hover:text-red-500"
-              >
-                ✕
-              </button>
-            </div>
-          )}
-
-          {error && (
-            <div className="bg-red-100 text-red-700 px-4 py-2 rounded-lg text-sm font-medium">
-              {error}
-            </div>
-          )}
-
-          {successMsg && (
-            <div className="bg-green-100 text-green-700 px-4 py-2 rounded-lg text-sm font-medium">
-              {successMsg}
-            </div>
-          )}
         </div>
       </div>
 
-      {/* Tables Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-        {tables.map((table) => {
-          const guests = getTableGuests(table.name);
-          const status = getTableStatus(table.name, table.maxGuests);
-          const isTarget = selectedGuest && selectedGuest.guestGroup !== table.name;
-          const canAccept = isTarget && (status.current + selectedGuest.guests <= table.maxGuests);
-
-          return (
-            <motion.div
-              key={table.id}
-              layout
-              className={`bg-white rounded-xl shadow-md overflow-hidden border-2 transition-all ${
-                selectedGuest?.guestGroup === table.name 
-                  ? 'border-blue-400 ring-2 ring-blue-100' 
-                  : canAccept 
-                    ? 'border-green-400 hover:ring-4 hover:ring-green-100 cursor-pointer'
-                    : isTarget
-                      ? 'border-gray-200 opacity-50 cursor-not-allowed'
-                      : 'border-transparent hover:border-gold/30'
-              }`}
-              onClick={() => {
-                if (canAccept) {
-                  handleMoveGuest(table.id, table.name, table.maxGuests);
-                }
-              }}
-            >
-              {/* Table Header */}
-              <div className={`p-3 ${
-                status.isFull ? 'bg-green-100' : 'bg-gray-50'
-              } border-b border-gray-100 flex justify-between items-center`}>
-                <h3 className="font-bold text-gray-700 truncate pr-2" title={table.name}>
-                  {table.name}
-                </h3>
-                <span className={`text-xs font-bold px-2 py-1 rounded-full ${
-                  status.isFull ? 'bg-green-200 text-green-800' : 'bg-gray-200 text-gray-600'
-                }`}>
-                  {status.current}/{table.maxGuests}
-                </span>
-              </div>
-
-              {/* Guest List */}
-              <div className="p-3 space-y-2 min-h-[100px]">
-                {guests.length === 0 ? (
-                  <p className="text-xs text-gray-400 text-center italic py-4">Vazia</p>
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        {/* Left Column: Waiting List */}
+        <div className="lg:col-span-4 space-y-4">
+          <div className="bg-white rounded-2xl shadow-lg p-5">
+            <div className="flex items-center gap-2 mb-4">
+               <HelpCircle className="text-orange-500 w-5 h-5" />
+               <h3 className="font-bold text-gray-700 uppercase tracking-wider text-sm">Aguardando Atribuição ({unassignedRSVPs.length})</h3>
+            </div>
+            
+            <div className="space-y-3 max-h-[600px] overflow-y-auto pr-2 custom-scrollbar">
+                {unassignedRSVPs.length === 0 ? (
+                  <div className="text-center py-10">
+                    <CheckCircle className="w-10 h-10 text-green-200 mx-auto mb-2" />
+                    <p className="text-gray-400 text-sm italic">Todos os confirmados estão sentados!</p>
+                  </div>
                 ) : (
-                  guests.map((guest) => (
+                  unassignedRSVPs.map(rsvp => (
                     <div 
-                      key={guest.id}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setSelectedGuest(selectedGuest?.id === guest.id ? null : guest);
-                      }}
-                      className={`text-sm p-2 rounded-lg cursor-pointer transition-colors flex justify-between items-center ${
-                        selectedGuest?.id === guest.id
-                          ? 'bg-blue-100 text-blue-800 font-semibold'
-                          : 'bg-gray-50 hover:bg-gray-100 text-gray-700'
+                      key={rsvp.id}
+                      onClick={() => setSelectedRsvp(selectedRsvp?.id === rsvp.id ? null : rsvp)}
+                      className={`p-4 rounded-xl border-2 cursor-pointer transition-all shadow-sm ${
+                        selectedRsvp?.id === rsvp.id 
+                        ? 'border-gold bg-gold/5 ring-4 ring-gold/10' 
+                        : 'border-gray-100 bg-white hover:border-gray-200'
                       }`}
                     >
-                      <span className="truncate mr-2">{guest.name}</span>
-                      <span className="text-xs bg-white px-1.5 py-0.5 rounded border border-gray-200 text-gray-500">
-                        {guest.guests}
-                      </span>
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <p className="font-bold text-gray-800">{rsvp.guestName}</p>
+                          <p className="text-xs text-gray-500">Original: {rsvp.inviteLabel}</p>
+                        </div>
+                        <span className="bg-gray-100 text-gray-600 px-2 py-1 rounded-lg text-xs font-bold">
+                           {rsvp.guests_count} pes.
+                        </span>
+                      </div>
                     </div>
                   ))
                 )}
-              </div>
-              
-              {/* Action Overlay (Only visible when dragging/selecting) */}
-              {canAccept && (
-                <div className="bg-green-500/10 absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity pointer-events-none">
-                  <span className="bg-green-600 text-white px-3 py-1 rounded-full text-sm font-bold shadow-lg">
-                    Mover para cá
-                  </span>
-                </div>
-              )}
-            </motion.div>
-          );
-        })}
+            </div>
+          </div>
+        </div>
+
+        {/* Right Column: Tables Grid */}
+        <div className="lg:col-span-8 space-y-4">
+           {selectedRsvp && (
+             <div className="bg-gold/10 border-2 border-dashed border-gold rounded-2xl p-4 text-center animate-pulse mb-4">
+                <p className="text-gold font-bold">
+                   Selecione uma mesa abaixo para sentar <span className="underline">{selectedRsvp.guestName}</span>
+                </p>
+             </div>
+           )}
+
+           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {tables.map(table => {
+                const guestsInTable = getTableGuests(table.label);
+                const currentCount = guestsInTable.reduce((acc, g) => acc + g.guests_count, 0);
+                const isFull = currentCount >= table.max_guests;
+
+                return (
+                  <div 
+                    key={table.id}
+                    onClick={() => selectedRsvp && handleAssignToTable(table.label)}
+                    className={`bg-white rounded-2xl shadow-md border-2 transition-all p-5 relative overflow-hidden ${
+                      selectedRsvp 
+                        ? isFull 
+                          ? 'opacity-50 cursor-not-allowed border-red-100' 
+                          : 'border-blue-400 bg-blue-50/30 cursor-pointer hover:scale-[1.02]' 
+                        : 'border-transparent hover:border-gray-100'
+                    }`}
+                  >
+                    {/* Progress Bar Top */}
+                    <div className="absolute top-0 left-0 h-1 bg-gold transition-all" style={{ width: `${Math.min(100, (currentCount/table.max_guests)*100)}%` }}></div>
+
+                    <div className="flex justify-between items-start mb-4">
+                      <div>
+                        <h4 className="font-bold text-gray-800 text-lg">{table.label}</h4>
+                        <div className="flex items-center gap-1 text-gray-400 text-xs">
+                           <Users className="w-3 h-3" />
+                           <span>Capacidade: {table.max_guests}</span>
+                        </div>
+                      </div>
+                      <div className={`px-3 py-1 rounded-full text-xs font-bold ${isFull ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-600'}`}>
+                        {currentCount} / {table.max_guests}
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                       {guestsInTable.map(guest => (
+                         <div key={guest.id} className="flex justify-between items-center bg-gray-50 p-2 rounded-lg group">
+                            <span className="text-sm font-medium text-gray-700">{guest.guestName}</span>
+                            <div className="flex items-center gap-2">
+                               <span className="text-[10px] text-gray-400">{guest.guests_count} pes.</span>
+                               <button 
+                                onClick={(e) => { e.stopPropagation(); handleUnassign(guest.id); }}
+                                className="text-red-400 opacity-0 group-hover:opacity-100 hover:text-red-600 transition-all"
+                               >
+                                 &times;
+                               </button>
+                            </div>
+                         </div>
+                       ))}
+                       {guestsInTable.length === 0 && (
+                         <p className="text-xs text-gray-300 italic text-center py-4">Mesa vazia</p>
+                       )}
+                    </div>
+                    
+                    {selectedRsvp && !isFull && (
+                      <div className="absolute inset-0 flex items-center justify-center bg-blue-500/10 opacity-0 hover:opacity-100 transition-opacity">
+                        <Move className="text-blue-500 w-8 h-8" />
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+           </div>
+        </div>
       </div>
     </div>
   );

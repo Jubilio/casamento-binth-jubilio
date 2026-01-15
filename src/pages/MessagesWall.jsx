@@ -1,46 +1,59 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { collection, query, orderBy, onSnapshot } from 'firebase/firestore';
-import { db } from '../lib/firebase';
+import { supabase } from '../lib/supabase';
 import FloatingParticles from '../components/FloatingParticles';
+
+// Pastel colors for cards
+const colors = [
+  'bg-rose-50 border-rose-100',
+  'bg-blue-50 border-blue-100', 
+  'bg-amber-50 border-amber-100',
+  'bg-emerald-50 border-emerald-100',
+  'bg-purple-50 border-purple-100',
+  'bg-pink-50 border-pink-100'
+];
+
+const getRandomColor = () => colors[Math.floor(Math.random() * colors.length)];
 
 const MessagesWall = () => {
   const [messages, setMessages] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Load from Local Storage (DEV_MODE persistence)
-    const localData = JSON.parse(localStorage.getItem('mock_rsvps') || '[]');
-    
-    // In a real scenario, we would merge with Firestore here.
-    // For now, let's prioritize local data since we are in simulated mode.
-    
-    const validMessages = localData
-      .filter(rsvp => rsvp.message && rsvp.message.trim().length > 0)
-      .map(rsvp => ({
-        id: rsvp.id,
-        name: rsvp.name,
-        message: rsvp.message,
-        date: new Date(rsvp.timestamp),
-        color: getRandomColor() // Assign a random pastel color
-      }))
-      .sort((a, b) => b.date - a.date);
+    const fetchMessages = async () => {
+      try {
+        // Fetch from Supabase
+        const { data, error } = await supabase
+          .from('rsvps')
+          .select('id, guest_name, message, created_at')
+          .not('message', 'is', null)
+          .neq('message', '')
+          .order('created_at', { ascending: false });
 
-    setMessages(validMessages);
-    setIsLoading(false);
+        if (error) {
+          console.error('Error fetching messages:', error);
+          setIsLoading(false);
+          return;
+        }
+
+        const validMessages = (data || []).map(rsvp => ({
+          id: rsvp.id,
+          name: rsvp.guest_name || 'Convidado',
+          message: rsvp.message,
+          date: new Date(rsvp.created_at),
+          color: getRandomColor()
+        }));
+
+        setMessages(validMessages);
+      } catch (err) {
+        console.error('Error:', err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchMessages();
   }, []);
-
-  // Pastel colors for cards
-  const colors = [
-    'bg-rose-50 border-rose-100',
-    'bg-blue-50 border-blue-100', 
-    'bg-amber-50 border-amber-100',
-    'bg-emerald-50 border-emerald-100',
-    'bg-purple-50 border-purple-100',
-    'bg-pink-50 border-pink-100'
-  ];
-
-  const getRandomColor = () => colors[Math.floor(Math.random() * colors.length)];
 
   return (
     <div className="min-h-screen bg-neutral-50 relative overflow-hidden">

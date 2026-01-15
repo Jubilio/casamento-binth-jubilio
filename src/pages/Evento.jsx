@@ -118,7 +118,7 @@ const Evento = () => {
                 </li>
                 <li className="flex items-start">
                   <span className="font-bold mr-2 text-neutral-gray">🕐 Horário:</span>
-                  12:00
+                  14:00
                 </li>
                 <li className="flex items-start">
                   <span className="font-bold mr-2 text-neutral-gray">📍 Local:</span>

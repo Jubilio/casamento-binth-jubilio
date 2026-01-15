@@ -1,147 +1,193 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import guestListData from '../data/guestList.json';
+import { Users, User, X } from 'lucide-react';
 
-const SeatingChart = ({ rsvps }) => {
+const SeatingChart = ({ rsvps, guestGroups }) => {
   const [selectedTable, setSelectedTable] = useState(null);
 
-  // Calculate occupancy for each table
-  const tables = guestListData.groups.map(group => {
-    const groupRSVPs = rsvps.filter(r => r.guestGroup === group.name && r.attending);
-    const confirmedCount = groupRSVPs.reduce((sum, r) => sum + r.guests, 0);
+  // Group confirmed RSVPs by the assigned table (invite label)
+  const tables = (guestGroups || []).map(invite => {
+    const guestsInTable = rsvps.filter(r => r.attending && r.tableAssignment === invite.label);
+    const confirmedCount = guestsInTable.reduce((sum, r) => sum + (r.guests_count || 0), 0);
     
     let status = 'empty';
-    if (confirmedCount >= group.maxGuests) status = 'full';
+    const max = 10; // Fixed 10 seats per user request
+    if (confirmedCount >= max) status = 'full';
     else if (confirmedCount > 0) status = 'partial';
 
     return {
-      ...group,
+      ...invite,
       confirmedCount,
       status,
-      guests: groupRSVPs
+      guests: guestsInTable
     };
   });
 
   const getStatusColor = (status) => {
     switch (status) {
-      case 'full': return 'bg-green-500 border-green-600 text-white';
-      case 'partial': return 'bg-yellow-400 border-yellow-500 text-white';
-      default: return 'bg-white border-gray-300 text-gray-500';
+      case 'full': return 'bg-green-500 border-green-600 text-white shadow-green-200';
+      case 'partial': return 'bg-blue-500 border-blue-600 text-white shadow-blue-200';
+      default: return 'bg-white border-gray-200 text-gray-400';
     }
   };
 
-  return (
-    <div className="bg-white rounded-2xl shadow-lg p-6">
-      <h2 className="text-2xl font-serif text-neutral-gray mb-6 flex items-center gap-2">
-        🗺️ Mapa de Assentos
-        <span className="text-sm font-sans font-normal text-gray-500 ml-auto">
-          {tables.length} Mesas
-        </span>
-      </h2>
+  // Helper to generate 10 seats with guest names
+  const getSeats = (tableGuests) => {
+    const seats = Array(10).fill(null);
+    let seatIndex = 0;
 
-      {/* Legend */}
-      <div className="flex gap-4 mb-8 text-sm">
-        <div className="flex items-center gap-2">
-          <div className="w-4 h-4 rounded-full bg-green-500"></div>
-          <span>Cheia (10/10)</span>
+    tableGuests.forEach(rsvp => {
+      for (let i = 0; i < rsvp.guests_count; i++) {
+        if (seatIndex < 10) {
+          // Only show the real name for the first seat of the group, then "Acompanhante"
+          seats[seatIndex] = i === 0 ? rsvp.guestName : `${rsvp.guestName} (Acomp.)`;
+          seatIndex++;
+        }
+      }
+    });
+
+    return seats;
+  };
+
+  return (
+    <div className="bg-white rounded-2xl shadow-xl p-8 border border-gray-100 pb-16">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-4">
+        <div>
+          <h2 className="text-3xl font-serif text-gray-800">Mapa do Salão</h2>
+          <p className="text-gray-500">Cada mesa possui capacidade para <span className="font-bold text-gold">10 lugares</span></p>
         </div>
-        <div className="flex items-center gap-2">
-          <div className="w-4 h-4 rounded-full bg-yellow-400"></div>
-          <span>Parcial (1-9)</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <div className="w-4 h-4 rounded-full bg-white border border-gray-300"></div>
-          <span>Vazia (0)</span>
+        <div className="flex gap-4 p-2 bg-gray-50 rounded-xl">
+           <div className="flex items-center gap-2 text-[10px] font-bold text-gray-400 uppercase tracking-wider">
+              <div className="w-3 h-3 rounded-full bg-green-500"></div> Cheia
+           </div>
+           <div className="flex items-center gap-2 text-[10px] font-bold text-gray-400 uppercase tracking-wider">
+              <div className="w-3 h-3 rounded-full bg-blue-500"></div> Ocupada
+           </div>
+           <div className="flex items-center gap-2 text-[10px] font-bold text-gray-400 uppercase tracking-wider">
+              <div className="w-3 h-3 rounded-full bg-white border border-gray-200"></div> Vazia
+           </div>
         </div>
       </div>
 
-      {/* Grid Layout */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
-        {tables.map((table) => (
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-8">
+        {tables.map((table, idx) => (
           <motion.div
             key={table.id}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
+            whileHover={{ scale: 1.05, y: -5 }}
             onClick={() => setSelectedTable(table)}
             className={`
-              relative aspect-square rounded-full border-4 shadow-md cursor-pointer
-              flex flex-col items-center justify-center text-center p-4 transition-colors
+              relative aspect-square rounded-[2.5rem] border-2 shadow-lg cursor-pointer
+              flex flex-col items-center justify-center text-center p-4 transition-all
               ${getStatusColor(table.status)}
             `}
           >
-            <h3 className="font-bold text-sm md:text-base leading-tight mb-1">
-              {table.name.split(' - ')[1] || table.name}
+            <div className="absolute top-2 left-1/2 -translate-x-1/2 opacity-20">
+               <Users className="w-8 h-8" />
+            </div>
+
+            <h3 className="font-bold text-xs leading-tight mb-2 uppercase tracking-tighter">
+              {table.label}
             </h3>
-            <p className="text-xs font-medium opacity-90">
-              {table.confirmedCount} / {table.maxGuests}
-            </p>
             
-            {/* Table Number Badge */}
-            <div className="absolute -top-2 -right-2 w-8 h-8 bg-gold text-white rounded-full flex items-center justify-center text-xs font-bold shadow-sm border-2 border-white">
-              {table.id.replace('mesa-', '')}
+            <div className="flex items-center gap-1 bg-black/10 px-2 py-0.5 rounded-full">
+               <span className="text-xs font-black">{table.confirmedCount}</span>
+               <span className="text-[10px] opacity-60">/ 10</span>
+            </div>
+            
+            {/* Minimal Seats Preview Around the card */}
+            <div className="absolute inset-0 pointer-events-none">
+                {[...Array(10)].map((_, i) => {
+                    const angle = (i * 36) * (Math.PI / 180);
+                    const x = Math.cos(angle) * 45;
+                    const y = Math.sin(angle) * 45;
+                    const isOccupied = i < table.confirmedCount;
+                    return (
+                        <div 
+                            key={i} 
+                            style={{ 
+                                left: `calc(50% + ${x}%)`, 
+                                top: `calc(50% + ${y}%)`,
+                                transform: 'translate(-50%, -50%)'
+                            }}
+                            className={`absolute w-1.5 h-1.5 rounded-full ${isOccupied ? 'bg-white' : 'bg-gray-200 border border-gray-300'}`}
+                        />
+                    );
+                })}
+            </div>
+
+            {/* Table Badge */}
+            <div className="absolute -top-3 -right-3 w-8 h-8 bg-gold text-white rounded-xl flex items-center justify-center text-[10px] font-black shadow-lg border-2 border-white">
+              {idx + 1}
             </div>
           </motion.div>
         ))}
       </div>
 
-      {/* Modal */}
+      {/* Modal - Detailed Table View */}
       <AnimatePresence>
         {selectedTable && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm" onClick={() => setSelectedTable(null)}>
+          <div 
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-md" 
+            onClick={() => setSelectedTable(null)}
+          >
             <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.9 }}
-              className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden"
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              className="bg-white rounded-[2rem] shadow-2xl w-full max-w-lg overflow-hidden relative"
               onClick={e => e.stopPropagation()}
             >
-              <div className="bg-gold p-4 text-white flex justify-between items-center">
-                <h3 className="text-xl font-serif font-bold">
-                  {selectedTable.name}
+              <button 
+                onClick={() => setSelectedTable(null)}
+                className="absolute top-6 right-6 p-2 bg-gray-100 hover:bg-gray-200 rounded-full text-gray-500 transition-colors z-10"
+              >
+                <X className="w-5 h-5" />
+              </button>
+
+              <div className="bg-gradient-to-br from-gold/10 to-transparent p-10 text-center border-b border-gray-100">
+                <p className="text-[10px] uppercase font-black tracking-[0.2em] text-gold mb-3">Mesa Reservada</p>
+                <h3 className="text-4xl font-serif font-bold italic text-gray-800 mb-2">
+                  {selectedTable.label}
                 </h3>
-                <button 
-                  onClick={() => setSelectedTable(null)}
-                  className="text-white/80 hover:text-white text-2xl leading-none"
-                >
-                  &times;
-                </button>
-              </div>
-              
-              <div className="p-6">
-                <div className="flex justify-between items-center mb-4">
-                  <span className="text-gray-600 font-medium">Ocupação</span>
-                  <span className={`px-3 py-1 rounded-full text-sm font-bold ${
-                    selectedTable.status === 'full' ? 'bg-green-100 text-green-700' :
-                    selectedTable.status === 'partial' ? 'bg-yellow-100 text-yellow-700' :
-                    'bg-gray-100 text-gray-700'
+                <div className="flex justify-center gap-2 mt-4">
+                  <span className={`px-4 py-1 rounded-full text-xs font-bold ${
+                    selectedTable.status === 'full' ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-600'
                   }`}>
-                    {selectedTable.confirmedCount} / {selectedTable.maxGuests}
+                    {selectedTable.confirmedCount} / 10 Lugares Ocupados
                   </span>
                 </div>
-
-                <div className="max-h-60 overflow-y-auto space-y-2">
-                  {selectedTable.guests.length > 0 ? (
-                    selectedTable.guests.map((guest, idx) => (
-                      <div key={idx} className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                        <div>
-                          <p className="font-medium text-gray-800">{guest.name}</p>
-                          {guest.guests > 1 && (
-                            <p className="text-xs text-gray-500">
-                              + {guest.guests - 1} acompanhante(s)
-                            </p>
-                          )}
-                        </div>
-                        <span className="text-xs bg-white border border-gray-200 px-2 py-1 rounded text-gray-500">
-                          {guest.guests} assento(s)
-                        </span>
+              </div>
+              
+              <div className="p-8">
+                {/* Visual Seat Representation */}
+                <div className="grid grid-cols-2 gap-3">
+                  {getSeats(selectedTable.guests).map((guestName, idx) => (
+                    <div 
+                      key={idx} 
+                      className={`flex items-center gap-3 p-3 rounded-xl border transition-all ${
+                        guestName 
+                          ? 'bg-blue-50 border-blue-100 ring-1 ring-blue-50' 
+                          : 'bg-gray-50 border-dashed border-gray-200 opacity-60'
+                      }`}
+                    >
+                      <div className={`w-8 h-8 rounded-full flex items-center justify-center text-[10px] font-bold ${
+                        guestName ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-400'
+                      }`}>
+                        {idx + 1}
                       </div>
-                    ))
-                  ) : (
-                    <p className="text-center text-gray-500 py-4">
-                      Nenhum convidado confirmado nesta mesa.
-                    </p>
-                  )}
+                      <div className="flex-1 min-w-0">
+                        <p className={`text-xs font-bold truncate ${guestName ? 'text-blue-900' : 'text-gray-400 italic'}`}>
+                          {guestName || 'Lugar Disponível'}
+                        </p>
+                      </div>
+                      {guestName && <User className="w-3 h-3 text-blue-300 flex-shrink-0" />}
+                    </div>
+                  ))}
                 </div>
+                
+                <p className="text-center text-[10px] text-gray-400 mt-8 font-medium uppercase tracking-widest">
+                  Toque fora para fechar o mapa
+                </p>
               </div>
             </motion.div>
           </div>

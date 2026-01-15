@@ -39,12 +39,34 @@ const ScrollToTop = () => {
 
 const AppContent = () => {
   const location = useLocation();
+  
+  // Initialize state based on current path to avoid sync setState in effect
+  // If we are NOT on root, show the initial splash for 5s
+  const [showInitialSplash, setShowInitialSplash] = useState(location.pathname !== '/');
   const [isSplash, setIsSplash] = useState(location.pathname === '/');
+
+  // Initial transition timer (5 seconds)
+  useEffect(() => {
+    if (showInitialSplash) {
+      const timer = setTimeout(() => {
+        setShowInitialSplash(false);
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [showInitialSplash]);
 
   // Update isSplash when location changes
   useEffect(() => {
     setIsSplash(location.pathname === '/');
   }, [location.pathname]);
+
+  if (showInitialSplash) {
+    return (
+      <ErrorBoundary>
+        <Splash isAutomatic={true} />
+      </ErrorBoundary>
+    );
+  }
 
   return (
     <ErrorBoundary>

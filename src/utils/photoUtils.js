@@ -1,5 +1,4 @@
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { storage } from '../lib/firebase';
+import { supabase } from '../lib/supabase';
 
 /**
  * Compress and resize image before upload
@@ -33,7 +32,7 @@ export const createThumbnail = (canvas, maxSize = 200) => {
 };
 
 /**
- * Upload photo to Firebase Storage
+ * Upload photo to Supabase Storage
  */
 export const uploadPhoto = async (imageBlob, thumbnailBlob, guestName) => {
   const timestamp = Date.now();
@@ -41,16 +40,30 @@ export const uploadPhoto = async (imageBlob, thumbnailBlob, guestName) => {
   const filename = `${timestamp}_${sanitizedName}`;
   
   // Upload full image
-  const imageRef = ref(storage, `wedding-photos/pending/${filename}.jpg`);
-  await uploadBytes(imageRef, imageBlob);
-  const imageUrl = await getDownloadURL(imageRef);
+  const imagePath = `pending/${filename}.jpg`;
+  const { error: imageError } = await supabase.storage
+    .from('wedding-photos')
+    .upload(imagePath, imageBlob, { contentType: 'image/jpeg' });
+  
+  if (imageError) throw imageError;
+  
+  const { data: imageData } = supabase.storage
+    .from('wedding-photos')
+    .getPublicUrl(imagePath);
   
   // Upload thumbnail
-  const thumbnailRef = ref(storage, `wedding-photos/thumbnails/${filename}_thumb.jpg`);
-  await uploadBytes(thumbnailRef, thumbnailBlob);
-  const thumbnailUrl = await getDownloadURL(thumbnailRef);
+  const thumbnailPath = `thumbnails/${filename}_thumb.jpg`;
+  const { error: thumbError } = await supabase.storage
+    .from('wedding-photos')
+    .upload(thumbnailPath, thumbnailBlob, { contentType: 'image/jpeg' });
   
-  return { imageUrl, thumbnailUrl };
+  if (thumbError) throw thumbError;
+  
+  const { data: thumbData } = supabase.storage
+    .from('wedding-photos')
+    .getPublicUrl(thumbnailPath);
+  
+  return { imageUrl: imageData.publicUrl, thumbnailUrl: thumbData.publicUrl };
 };
 
 /**

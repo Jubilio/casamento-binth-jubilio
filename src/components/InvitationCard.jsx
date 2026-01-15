@@ -1,11 +1,15 @@
 import React, { useRef } from 'react';
 import { motion } from 'framer-motion';
-import { Download } from 'lucide-react';
+import { Download, Share2 } from 'lucide-react';
 import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
+import toast from 'react-hot-toast';
+import { supabase } from '../lib/supabase';
+import { useState } from 'react';
 
-const InvitationCard = ({ guestName, tableName, tableLocation, rsvpId }) => {
+const InvitationCard = ({ guestName, tableName, rsvpId }) => {
   const cardRef = useRef(null);
+  const [isSharing, setIsSharing] = useState(false);
 
   // Format table name to show only the part after " - "
   const formatTableName = (name) => {
@@ -19,7 +23,7 @@ const InvitationCard = ({ guestName, tableName, tableLocation, rsvpId }) => {
     couple: "Binth & Jubílio",
     date: "07 de Março de 2026",
     ceremonyTime: "10:00",
-    receptionTime: "12:00",
+    receptionTime: "14:00",
     ceremonyVenue: "MEA Congregação de Mateque",
     receptionVenue: "THAYANA Eventos",
     fullTableName: formatTableName(tableName)
@@ -62,9 +66,8 @@ const InvitationCard = ({ guestName, tableName, tableLocation, rsvpId }) => {
         URL.revokeObjectURL(url);
       }, 'image/png');
 
-    } catch (error) {
-      console.error('❌ Error generating PNG:', error);
-      alert('Erro ao gerar PNG. Tente novamente.');
+    } catch {
+      toast.error('Erro ao gerar PNG. Tente novamente.');
     }
   };
 
@@ -91,9 +94,54 @@ const InvitationCard = ({ guestName, tableName, tableLocation, rsvpId }) => {
 
       pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
       pdf.save(getSafeFilename(guestName, 'pdf'));
-    } catch (error) {
-      console.error('❌ Error generating PDF:', error);
-      alert('Erro ao gerar PDF. Tente novamente.');
+    } catch {
+      toast.error('Erro ao gerar PDF. Tente novamente.');
+    }
+  };
+
+  const shareToWhatsApp = async () => {
+    if (!cardRef.current) return;
+    setIsSharing(true);
+
+    try {
+      const canvas = await html2canvas(cardRef.current, {
+        scale: 2,
+        backgroundColor: '#ffffff',
+        logging: false,
+        useCORS: true
+      });
+
+      // Convert to blob for upload
+      const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+      if (!blob) throw new Error('Não foi possível gerar a imagem');
+
+      // Upload to Supabase Storage
+      const filename = `ticket-${rsvpId || 'test'}-${Date.now()}.png`;
+      const path = `tickets/${filename}`;
+      
+      const { error: uploadError } = await supabase.storage
+        .from('wedding-photos')
+        .upload(path, blob, { 
+          contentType: 'image/png',
+          cacheControl: '3600'
+        });
+
+      if (uploadError) throw uploadError;
+
+      // Get public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('wedding-photos')
+        .getPublicUrl(path);
+
+      // Create WhatsApp message
+      const message = `Olá! Binth & Jubílio, aqui está o meu ticket de confirmação para o vosso casamento! 💍✨\n\nTicket: ${publicUrl}\n\nMal posso esperar por este momento! ❤️`;
+      const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
+      
+      window.open(whatsappUrl, '_blank');
+    } catch {
+      toast.error(`Erro ao compartilhar: Tente baixar o ticket manualmente.`);
+    } finally {
+      setIsSharing(false);
     }
   };
 
@@ -170,10 +218,29 @@ const InvitationCard = ({ guestName, tableName, tableLocation, rsvpId }) => {
       <div className="mt-8 flex flex-col sm:flex-row gap-3 justify-center">
         <button
           onClick={downloadAsPNG}
-          className="flex items-center justify-center gap-2 px-6 py-3 bg-gold hover:bg-gold/90 text-white rounded-xl font-medium transition-colors shadow-lg shadow-gold/20"
+          className="flex items-center justify-center gap-2 px-6 py-3 bg-white border-2 border-gold text-gold hover:bg-gold/5 rounded-xl font-medium transition-colors"
         >
           <Download className="w-5 h-5" />
-          Baixar Ticket
+          Baixar Ticket (PNG)
+        </button>
+        <button
+          onClick={downloadAsPDF}
+          className="flex items-center justify-center gap-2 px-6 py-3 bg-white border-2 border-gold text-gold hover:bg-gold/5 rounded-xl font-medium transition-colors"
+        >
+          <Download className="w-5 h-5" />
+          Baixar Ticket (PDF)
+        </button>
+        <button
+          onClick={shareToWhatsApp}
+          disabled={isSharing}
+          className="flex items-center justify-center gap-2 px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-xl font-medium transition-colors shadow-lg shadow-green-600/20 disabled:opacity-50"
+        >
+          {isSharing ? (
+            <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+          ) : (
+            <Share2 className="w-5 h-5" />
+          )}
+          {isSharing ? 'Preparando...' : 'Enviar no WhatsApp'}
         </button>
       </div>
 

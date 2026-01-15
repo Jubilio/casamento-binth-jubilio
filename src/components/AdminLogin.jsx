@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
-import { motion } from 'framer-motion';
-import { signInWithEmailAndPassword } from 'firebase/auth';
-import { auth } from '../lib/firebase';
+import { motion } from 'framer-motion'; // eslint-disable-line no-unused-vars
+import { signIn } from '../lib/supabase';
 
 const AdminLogin = ({ onLogin }) => {
   const [email, setEmail] = useState('');
@@ -15,7 +14,7 @@ const AdminLogin = ({ onLogin }) => {
     setError('');
     
     try {
-      await signInWithEmailAndPassword(auth, email, password);
+      await signIn(email, password);
       onLogin(true);
       // Auth state listener in AdminDashboard will handle the rest
     } catch (err) {

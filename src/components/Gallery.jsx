@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import React, { useState, useCallback, useMemo } from 'react';
+import { motion, AnimatePresence } from 'framer-motion'; // eslint-disable-line no-unused-vars
 
 // Import images
 import hero from '../assets/hero.jpg';
@@ -12,13 +12,13 @@ const Gallery = () => {
   const [selectedImage, setSelectedImage] = useState(null);
   const [currentIndex, setCurrentIndex] = useState(0);
 
-  const images = [
+  const images = useMemo(() => [
     { src: hero, alt: 'Binth & Jubílio - Hero' },
     { src: coupleStanding, alt: 'Binth & Jubílio - Juntos' },
     { src: groomBeach, alt: 'Jubílio na Praia' },
     { src: groomBench, alt: 'Jubílio no Banco' },
     { src: brideBench, alt: 'Binth no Banco' },
-  ];
+  ], []);
 
   const openLightbox = (index) => {
     setCurrentIndex(index);
@@ -29,30 +29,30 @@ const Gallery = () => {
     setSelectedImage(null);
   };
 
-  const goToNext = () => {
+  const goToNext = useCallback(() => {
     const nextIndex = (currentIndex + 1) % images.length;
     setCurrentIndex(nextIndex);
     setSelectedImage(images[nextIndex]);
-  };
+  }, [currentIndex, images]);
 
-  const goToPrevious = () => {
+  const goToPrevious = useCallback(() => {
     const prevIndex = (currentIndex - 1 + images.length) % images.length;
     setCurrentIndex(prevIndex);
     setSelectedImage(images[prevIndex]);
-  };
+  }, [currentIndex, images]);
 
-  const handleKeyDown = (e) => {
+  const handleKeyDown = useCallback((e) => {
     if (e.key === 'Escape') closeLightbox();
     if (e.key === 'ArrowRight') goToNext();
     if (e.key === 'ArrowLeft') goToPrevious();
-  };
+  }, [goToNext, goToPrevious]); 
 
   React.useEffect(() => {
     if (selectedImage) {
       window.addEventListener('keydown', handleKeyDown);
       return () => window.removeEventListener('keydown', handleKeyDown);
     }
-  }, [selectedImage, currentIndex]);
+  }, [selectedImage, currentIndex, handleKeyDown]);
 
   return (
     <>

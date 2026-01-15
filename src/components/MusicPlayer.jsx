@@ -1,37 +1,85 @@
 import React, { useState, useEffect, useRef } from 'react';
 
 const MusicPlayer = () => {
-  const [isPlaying, setIsPlaying] = useState(() => {
-    const savedPreference = localStorage.getItem('musicPlaying');
-    return savedPreference === 'true';
-  });
-  
-  // Someday - Jonny Easton (Classical Wedding Music from Uppbeat)
-  const audioRef = useRef(new Audio('/music/someday.mp3'));
+  const audioRef = useRef(null);
+  const [isPlaying, setIsPlaying] = useState(false);
 
   useEffect(() => {
-    const audio = audioRef.current;
+    // Instantiate audio object only once on mount
+    const audio = new Audio('/music/someday.mp3');
     audio.loop = true;
+    audioRef.current = audio;
 
-    // Auto-play if preference is set
-    if (isPlaying) {
-      audio.play().catch(error => console.log("Autoplay prevented:", error));
+    // Check saved preference
+    const savedPreference = localStorage.getItem('musicPlaying');
+    
+    // Attempt play if strictly true
+    if (savedPreference === 'true') {
+        const play = () => {
+            if (!audioRef.current) return;
+            const playPromise = audioRef.current.play();
+            if (playPromise !== undefined) {
+                playPromise
+                    .then(() => {
+                        setIsPlaying(true);
+                        // Once playing, we can remove the global listener
+                        window.removeEventListener('click', play);
+                        window.removeEventListener('touchstart', play);
+                    })
+                    .catch(() => {
+                        console.log("Autoplay still waiting for interaction...");
+                        setIsPlaying(false);
+                    });
+            }
+        };
+
+        // 1. Try immediately (might work if user interacted before mount)
+        play();
+
+        // 2. Add global listeners to "unlock" audio on first interaction
+        window.addEventListener('click', play);
+        window.addEventListener('touchstart', play);
+
+        const timeout = setTimeout(play, 300);
+        
+        return () => {
+          window.removeEventListener('click', play);
+          window.removeEventListener('touchstart', play);
+          clearTimeout(timeout);
+          if (audio) audio.pause();
+          audioRef.current = null;
+        };
     }
 
+    // Cleanup
     return () => {
       audio.pause();
+      audioRef.current = null;
     };
-  }, [isPlaying]);
+  }, []);
 
   const togglePlay = () => {
+    const audio = audioRef.current;
+    if (!audio) return;
+
     if (isPlaying) {
-      audioRef.current.pause();
+      audio.pause();
       localStorage.setItem('musicPlaying', 'false');
+      setIsPlaying(false);
     } else {
-      audioRef.current.play();
-      localStorage.setItem('musicPlaying', 'true');
+      const playPromise = audio.play();
+      if (playPromise !== undefined) {
+          playPromise
+            .then(() => {
+                localStorage.setItem('musicPlaying', 'true');
+                setIsPlaying(true);
+            })
+            .catch(error => {
+                console.error("Playback failed:", error);
+                setIsPlaying(false);
+            });
+      }
     }
-    setIsPlaying(!isPlaying);
   };
 
   return (

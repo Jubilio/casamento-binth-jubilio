@@ -31,7 +31,7 @@ const Historia = () => {
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: 0.3 }}
             src={beachPhoto} 
-            alt="Binth e Jubílio" 
+            alt="Binth e Jubílio"
             className="rounded-2xl shadow-2xl max-h-96 object-cover"
           />
         </div>

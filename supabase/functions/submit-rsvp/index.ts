@@ -79,7 +79,45 @@ serve(async (req) => {
 
     console.log("RSVP saved successfully:", rsvp.id)
 
-    // 4. Marcar convidados vinculados como respondidos (apenas se existirem na tabela guests)
+    // 4. Send Email Notification (Optional/Resend)
+    const resendKey = Deno.env.get('RESEND_API_KEY');
+    if (resendKey) {
+      try {
+        const emailContent = `
+          <h2>Nova Confirmação de Presença! 💍</h2>
+          <p><strong>Convidado:</strong> ${guest_name}</p>
+          <p><strong>Presença:</strong> ${attending ? '✅ Sim, estarei presente' : '❌ Não poderei comparecer'}</p>
+          ${attending ? `<p><strong>Acompanhantes:</strong> ${guests_count}</p>` : ''}
+          ${phone ? `<p><strong>Telefone:</strong> ${phone}</p>` : ''}
+          ${message ? `<p><strong>Mensagem:</strong> ${message}</p>` : ''}
+          <br>
+          <p>Veja todos os detalhes no <a href="https://binthjubilio.netlify.app/gestao-casamento-2026">Painel Administrativo</a>.</p>
+        `;
+
+        const emailRes = await fetch('https://api.resend.com/emails', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${resendKey}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            from: 'Casamento Binth & Jubílio <onboarding@resend.dev>',
+            to: ['jubiliomausse5@gmail.com'],
+            subject: `RSVP: ${guest_name} - ${attending ? 'Confirmado' : 'Recusado'}`,
+            html: emailContent,
+          }),
+        });
+
+        const emailData = await emailRes.json();
+        console.log("Email notification sent:", emailData);
+      } catch (err) {
+        console.error("Failed to send email notification:", err);
+      }
+    } else {
+      console.log("RESEND_API_KEY not found. Skipping email notification.");
+    }
+
+    // 5. Marcar convidados vinculados como respondidos (apenas se existirem na tabela guests)
     await supabase
       .from('guests')
       .update({ status: 'responded' })

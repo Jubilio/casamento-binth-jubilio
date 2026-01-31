@@ -1,0 +1,26 @@
+{
+  "name": "Casamento Binth & Jubílio",
+  "short_name": "B&J Wedding",
+  "description": "Convite digital para o casamento de Binth e Jubílio",
+  "start_url": "/home",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#D4AF37",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["lifestyle", "social"],
+  "lang": "pt-BR"
+}

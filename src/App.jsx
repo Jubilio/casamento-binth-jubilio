@@ -25,6 +25,7 @@ const AdminDashboard = lazy(() => import('./pages/AdminDashboard'));
 const Galeria = lazy(() => import('./pages/Galeria'));
 const Presentes = lazy(() => import('./pages/Presentes'));
 const MessagesWall = lazy(() => import('./pages/MessagesWall'));
+const TicketPage = lazy(() => import('./pages/TicketPage'));
 
 // Scroll to top on route change
 const ScrollToTop = () => {
@@ -43,7 +44,6 @@ const AppContent = () => {
   // Initialize state based on current path to avoid sync setState in effect
   // If we are NOT on root, show the initial splash for 5s
   const [showInitialSplash, setShowInitialSplash] = useState(location.pathname !== '/');
-  const [isSplash, setIsSplash] = useState(location.pathname === '/');
 
   // Initial transition timer (5 seconds)
   useEffect(() => {
@@ -55,10 +55,8 @@ const AppContent = () => {
     }
   }, [showInitialSplash]);
 
-  // Update isSplash when location changes
-  useEffect(() => {
-    setIsSplash(location.pathname === '/');
-  }, [location.pathname]);
+  // Calculate isSplash directly from location
+  const isSplash = location.pathname === '/';
 
   if (showInitialSplash) {
     return (
@@ -124,6 +122,14 @@ const AppContent = () => {
                 element={
                   <Suspense fallback={<LoadingSkeleton type="dashboard" />}>
                     <AdminDashboard />
+                  </Suspense>
+                } 
+              />
+              <Route 
+                path="/ticket/:rsvpId" 
+                element={
+                  <Suspense fallback={<LoadingSkeleton type="page" />}>
+                    <TicketPage />
                   </Suspense>
                 } 
               />

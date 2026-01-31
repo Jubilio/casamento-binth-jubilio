@@ -54,6 +54,13 @@ serve(async (req) => {
 
     console.log("Found", guests?.length, "guests for invite", invite.id)
 
+    // 3. Buscar RSVP existente (Lógica de RSVP Único)
+    const { data: existingRSVP } = await supabase
+      .from('rsvps')
+      .select('id, attending')
+      .eq('invite_id', invite.id)
+      .maybeSingle()
+
     // Resposta de Sucesso com Headers CORS
     return new Response(
       JSON.stringify({ 
@@ -63,7 +70,8 @@ serve(async (req) => {
         max_guests: invite.max_guests,
         allow_plus_one: invite.allow_plus_one,
         event: invite.event,
-        guests 
+        guests,
+        existingRSVP
       }),
       { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },

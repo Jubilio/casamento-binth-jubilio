@@ -13,7 +13,10 @@ import {
   MessageSquare,
   Search,
   Share2,
-  AlertTriangle
+  AlertTriangle,
+  Download,
+  Filter,
+  Link as LinkIcon
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { supabase, onAuthStateChange, signOut } from '../lib/supabase';
@@ -33,8 +36,13 @@ const AdminDashboard = () => {
   const [searchTerm, setSearchTerm] = useState('');
   /* eslint-enable no-unused-vars */
   const [rsvps, setRSVPs] = useState([]);
-  const [activeTab, setActiveTab] = useState('overview'); // 'overview', 'invites', 'rsvps', 'stats'
+  const [activeTab, setActiveTab] = useState('overview');
   const [isRefreshing, setIsRefreshing] = useState(false);
+  
+  // RSVP Filters
+  const [rsvpSearchTerm, setRsvpSearchTerm] = useState('');
+  const [rsvpStatusFilter, setRsvpStatusFilter] = useState('all'); // 'all', 'confirmed', 'declined'
+  const [rsvpTableFilter, setRsvpTableFilter] = useState('all');
   
   // Modal states
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -283,10 +291,26 @@ const AdminDashboard = () => {
     const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
     if (isMobile) {
-        // Mobile: Use standard API which triggers the app
         window.open(`https://api.whatsapp.com/send?text=${encodedMessage}`, '_blank');
     } else {
-        // Desktop: Use web.whatsapp.com directly to avoid "Open App" prompt/landing page
+        window.open(`https://web.whatsapp.com/send?text=${encodedMessage}`, '_blank');
+    }
+  };
+
+  const sendReminderWhatsApp = (invite) => {
+    const baseUrl = `https://binthjubilio.netlify.app/rsvp?token=${invite.token}`;
+    const guestsNames = invite.guests && invite.guests.length > 0 
+      ? invite.guests.map(g => g.name).join(' & ') 
+      : (invite.label || 'Convidado');
+
+    const message = `Olá ${guestsNames}! 💕\n\nPassando para lembrar com carinho do nosso convite de casamento. 💍\n\nAinda não conseguimos confirmar sua presença no sistema. Conseguiria nos dar um retorno assim que puder?\n\n👉 Link para confirmar:\n${baseUrl}\n\nFicaremos muito felizes em ter você conosco! 💖`;
+    
+    const encodedMessage = encodeURIComponent(message);
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
+    if (isMobile) {
+        window.open(`https://api.whatsapp.com/send?text=${encodedMessage}`, '_blank');
+    } else {
         window.open(`https://web.whatsapp.com/send?text=${encodedMessage}`, '_blank');
     }
   };
@@ -488,10 +512,19 @@ const AdminDashboard = () => {
                                             <button 
                                                 onClick={() => sendWhatsApp(invite)}
                                                 className="text-green-600 hover:text-green-800 font-semibold text-sm flex items-center gap-1"
-                                                title="Enviar via WhatsApp"
+                                                title="Enviar Convite"
                                             >
-                                                💬 WhatsApp
+                                                💬 Convite
                                             </button>
+                                            { !rsvps.some(r => r.invite_id === invite.id) && (
+                                                <button 
+                                                    onClick={() => sendReminderWhatsApp(invite)}
+                                                    className="text-orange-600 hover:text-orange-800 font-semibold text-sm flex items-center gap-1"
+                                                    title="Enviar Lembrete"
+                                                >
+                                                    🔔 Lembrete
+                                                </button>
+                                            )}
                                              <button 
                                                 onClick={() => handleOpenEditModal(invite)}
                                                 className="text-gray-400 hover:text-gold transition-colors"
@@ -521,7 +554,94 @@ const AdminDashboard = () => {
 
         {/* --- RSVPS TAB --- */}
         {activeTab === 'rsvps' && (
-             <div className="bg-white rounded-2xl shadow-lg p-6">
+             <div className="space-y-6">
+               {/* Filters Bar */}
+               <div className="bg-white rounded-2xl shadow-lg p-6">
+                 <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
+                   <div className="flex flex-col md:flex-row gap-4 flex-1 w-full">
+                     {/* Search */}
+                     <div className="relative flex-1">
+                       <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                       <input
+                         type="text"
+                         placeholder="Buscar por nome..."
+                         value={rsvpSearchTerm}
+                         onChange={(e) => setRsvpSearchTerm(e.target.value)}
+                         className="w-full pl-10 pr-4 py-2 border-2 border-gray-200 rounded-xl focus:border-gold focus:outline-none"
+                       />
+                     </div>
+                     {/* Status Filter */}
+                     <select
+                       value={rsvpStatusFilter}
+                       onChange={(e) => setRsvpStatusFilter(e.target.value)}
+                       className="px-4 py-2 border-2 border-gray-200 rounded-xl focus:border-gold focus:outline-none bg-white"
+                     >
+                       <option value="all">Todos os Status</option>
+                       <option value="confirmed">Confirmados</option>
+                       <option value="declined">Recusados</option>
+                     </select>
+                     {/* Table Filter */}
+                     <select
+                       value={rsvpTableFilter}
+                       onChange={(e) => setRsvpTableFilter(e.target.value)}
+                       className="px-4 py-2 border-2 border-gray-200 rounded-xl focus:border-gold focus:outline-none bg-white"
+                     >
+                       <option value="all">Todas as Mesas</option>
+                       {[...new Set(rsvps.map(r => r.tableAssignment).filter(Boolean))].map(table => (
+                         <option key={table} value={table}>{table}</option>
+                       ))}
+                     </select>
+                   </div>
+                   {/* Export Button */}
+                   <button
+                     onClick={() => {
+                       const filteredData = rsvps
+                         .filter(r => {
+                           const matchesSearch = r.guestName.toLowerCase().includes(rsvpSearchTerm.toLowerCase());
+                           const matchesStatus = rsvpStatusFilter === 'all' || 
+                             (rsvpStatusFilter === 'confirmed' && r.attending) || 
+                             (rsvpStatusFilter === 'declined' && !r.attending);
+                           const matchesTable = rsvpTableFilter === 'all' || r.tableAssignment === rsvpTableFilter;
+                           return matchesSearch && matchesStatus && matchesTable;
+                         })
+                         .map(r => ({
+                           Nome: r.guestName,
+                           Convite: r.inviteLabel || 'Sem Mesa',
+                           Presenca: r.attending ? 'Sim' : 'Não',
+                           Quantidade: r.guests_count,
+                           Telefone: r.phone || '',
+                           Mesa: r.tableAssignment || 'Não atribuída',
+                           Mensagem: r.message || '',
+                           Data: new Date(r.created_at).toLocaleDateString('pt-BR')
+                         }));
+                       
+                       // Generate CSV
+                       const headers = Object.keys(filteredData[0] || {}).join(',');
+                       const rows = filteredData.map(row => Object.values(row).map(v => `"${v}"`).join(',')).join('\n');
+                       const csv = `${headers}\n${rows}`;
+                       
+                       // Download
+                       const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+                       const url = URL.createObjectURL(blob);
+                       const link = document.createElement('a');
+                       link.href = url;
+                       link.download = `rsvps-${new Date().toISOString().split('T')[0]}.csv`;
+                       document.body.appendChild(link);
+                       link.click();
+                       document.body.removeChild(link);
+                       URL.revokeObjectURL(url);
+                       toast.success('Lista exportada com sucesso!');
+                     }}
+                     className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-xl flex items-center gap-2 font-medium whitespace-nowrap"
+                   >
+                     <Download className="w-4 h-4" />
+                     Exportar Excel
+                   </button>
+                 </div>
+               </div>
+
+               {/* RSVP Table */}
+               <div className="bg-white rounded-2xl shadow-lg p-6">
                 <h2 className="text-xl font-bold text-gray-800 mb-6">Lista de Confirmações</h2>
                 <div className="overflow-x-auto">
                     <table className="w-full text-left">
@@ -532,12 +652,21 @@ const AdminDashboard = () => {
                                 <th className="px-6 py-3">Presença</th>
                                 <th className="px-6 py-3">Qtd</th>
                                 <th className="px-6 py-3">Telefone</th>
-                                <th className="px-6 py-3">Mensagem</th>
+                                <th className="px-6 py-3">Mesa</th>
                                 <th className="px-6 py-3">Ticket</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-100">
-                            {rsvps.map(rsvp => (
+                            {rsvps
+                              .filter(r => {
+                                const matchesSearch = r.guestName.toLowerCase().includes(rsvpSearchTerm.toLowerCase());
+                                const matchesStatus = rsvpStatusFilter === 'all' || 
+                                  (rsvpStatusFilter === 'confirmed' && r.attending) || 
+                                  (rsvpStatusFilter === 'declined' && !r.attending);
+                                const matchesTable = rsvpTableFilter === 'all' || r.tableAssignment === rsvpTableFilter;
+                                return matchesSearch && matchesStatus && matchesTable;
+                              })
+                              .map(rsvp => (
                                 <tr key={rsvp.id} className="hover:bg-gray-50">
                                     <td className="px-6 py-4 font-medium">{rsvp.guestName}</td>
                                     <td className="px-6 py-4 text-sm text-gray-500">{rsvp.inviteLabel || 'Sem Mesa'}</td>
@@ -554,25 +683,46 @@ const AdminDashboard = () => {
                                     </td>
                                     <td className="px-6 py-4">{rsvp.guests_count}</td>
                                     <td className="px-6 py-4 text-sm font-mono">{rsvp.phone}</td>
-                                    <td className="px-6 py-4 text-sm italic text-gray-600 max-w-xs truncate">{rsvp.message}</td>
+                                    <td className="px-6 py-4 text-sm text-gray-600">{rsvp.tableAssignment || '-'}</td>
                                     <td className="px-6 py-4">
-                                        <a 
-                                            href={`https://xnsbgenkgborupwookoa.supabase.co/storage/v1/object/public/wedding-photos/tickets/ticket-${rsvp.id}.png`}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="text-blue-500 hover:text-blue-700 font-semibold text-sm flex items-center gap-1"
-                                        >
-                                           🎫 Ticket
-                                        </a>
+                                        <div className="flex items-center gap-2">
+                                          <a 
+                                              href={`/ticket/${rsvp.id}`}
+                                              target="_blank"
+                                              rel="noopener noreferrer"
+                                              className="text-blue-500 hover:text-blue-700 font-semibold text-sm flex items-center gap-1"
+                                              title="Ver ticket"
+                                          >
+                                             🎫
+                                          </a>
+                                          <button
+                                            onClick={() => {
+                                              navigator.clipboard.writeText(`${window.location.origin}/ticket/${rsvp.id}`);
+                                              toast.success('Link do ticket copiado!');
+                                            }}
+                                            className="text-gray-400 hover:text-gold"
+                                            title="Copiar link do ticket"
+                                          >
+                                            <LinkIcon className="w-4 h-4" />
+                                          </button>
+                                        </div>
                                     </td>
                                 </tr>
                             ))}
-                             {rsvps.length === 0 && (
-                                <tr><td colSpan="6" className="px-6 py-8 text-center text-gray-400">Nenhuma resposta recebida ainda.</td></tr>
+                             {rsvps.filter(r => {
+                               const matchesSearch = r.guestName.toLowerCase().includes(rsvpSearchTerm.toLowerCase());
+                               const matchesStatus = rsvpStatusFilter === 'all' || 
+                                 (rsvpStatusFilter === 'confirmed' && r.attending) || 
+                                 (rsvpStatusFilter === 'declined' && !r.attending);
+                               const matchesTable = rsvpTableFilter === 'all' || r.tableAssignment === rsvpTableFilter;
+                               return matchesSearch && matchesStatus && matchesTable;
+                             }).length === 0 && (
+                                <tr><td colSpan="7" className="px-6 py-8 text-center text-gray-400">Nenhuma resposta encontrada.</td></tr>
                             )}
                         </tbody>
                     </table>
                 </div>
+              </div>
              </div>
         )}
 

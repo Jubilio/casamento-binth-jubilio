@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 // eslint-disable-next-line no-unused-vars
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '../lib/supabase';
@@ -7,6 +8,7 @@ import DOMPurify from 'dompurify';
 
 
 const RSVPForm = ({ inviteData }) => {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     name: '',
     attending: '',
@@ -152,6 +154,7 @@ const RSVPForm = ({ inviteData }) => {
       setValidatedGuest(null);
       setSubmitted(false);
       setSubmittedRsvpId(null);
+      navigate('/home');
   };
 
   if (!inviteData) {

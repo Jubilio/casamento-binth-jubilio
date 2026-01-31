@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+// eslint-disable-next-line no-unused-vars
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '../lib/supabase';
 import InvitationCard from './InvitationCard';
@@ -130,25 +131,27 @@ const RSVPForm = ({ inviteData }) => {
       setSubmittedRsvpId(data.rsvpId);
       setSubmitted(true);
       
-      setTimeout(() => {
-        setFormData({
-            name: '',
-            attending: '',
-            guests: 1,
-            message: '',
-            phone: '',
-          });
-          setValidatedGuest(null);
-          setSubmitted(false);
-          setSubmittedRsvpId(null);
-      }, 15000);
-
+      // No more auto-close timeout
+      // setTimeout(...) removed
     } catch (error) {
       console.error('❌ Error submitting RSVP:', error);
       setErrors({ submit: error.message || 'Erro ao enviar confirmação.' });
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const handleClose = () => {
+      setFormData({
+        name: '',
+        attending: '',
+        guests: 1,
+        message: '',
+        phone: '',
+      });
+      setValidatedGuest(null);
+      setSubmitted(false);
+      setSubmittedRsvpId(null);
   };
 
   if (!inviteData) {
@@ -201,7 +204,17 @@ const RSVPForm = ({ inviteData }) => {
               tableName={label || (inviteData.event !== 'Casamento Binth & Jubilio' ? inviteData.event : 'Mesa Reservada')}
               tableLocation={''}
               rsvpId={submittedRsvpId}
+              onActionComplete={handleClose}
             />
+
+            <div className="flex justify-center">
+                <button
+                    onClick={handleClose}
+                    className="text-gray-500 hover:text-gray-700 underline text-sm"
+                >
+                    Fechar e voltar ao início
+                </button>
+            </div>
           </motion.div>
         ) : submitted ? (
           <motion.div
@@ -246,7 +259,7 @@ const RSVPForm = ({ inviteData }) => {
                 className={`w-full px-4 py-3 border-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-gold ${
                   errors.name ? 'border-red-500' : validatedGuest ? 'border-green-500' : 'border-gray-300'
                 }`}
-                placeholder="Digite seu nome conforme no convite..."
+                placeholder="Escreva seu nome ou apelido..."
               />
               
               {validatedGuest && (

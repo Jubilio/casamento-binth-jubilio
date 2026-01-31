@@ -21,6 +21,7 @@ import AdminLogin from '../components/AdminLogin';
 import InviteModal from '../components/InviteModal';
 import TableManagement from '../components/TableManagement';
 import SeatingChart from '../components/SeatingChart';
+import TicketsGallery from '../components/TicketsGallery';
 
 const AdminDashboard = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -266,14 +267,28 @@ const AdminDashboard = () => {
   };
 
   const sendWhatsApp = (invite) => {
-    const baseUrl = `${window.location.origin}/rsvp?token=${invite.token}`;
-    const guestsNames = invite.guests?.map(g => g.name).join(', ') || invite.label;
+    // Use production URL for sharing
+    const baseUrl = `https://binthjubilio.netlify.app/rsvp?token=${invite.token}`;
     
-    const message = `Olá ${guestsNames}! 🥂✨\n\nPreparamos um convite especial para o nosso casamento. Para vê-lo e confirmar sua presença, basta acessar o link abaixo:\n\n${baseUrl}\n\nFicaremos muito felizes com a sua presença! 🤍`;
+    // Get guest names or label
+    const guestsNames = invite.guests && invite.guests.length > 0 
+      ? invite.guests.map(g => g.name).join(' & ') 
+      : (invite.label || 'Convidado');
+
+    const message = `Olá ${guestsNames}! 💕\n\nPreparamos com muito carinho um convite especial para o nosso casamento.\n\n👉 Para acessar o convite e confirmar sua presença, é só clicar no link abaixo:\n${baseUrl}\n\n🔎 Importante: ao entrar no sistema, procure pelo seu primeiro nome ou apelido (como costuma ser chamada).\n\nSe tiver qualquer dificuldade, é só nos avisar — teremos prazer em ajudar! 💬\n\nFicaremos muito felizes com a sua presença! 💖✨`;
     
     const encodedMessage = encodeURIComponent(message);
-    const whatsappUrl = `https://wa.me/?text=${encodedMessage}`;
-    window.open(whatsappUrl, '_blank');
+    
+    // Check if mobile device
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
+    if (isMobile) {
+        // Mobile: Use standard API which triggers the app
+        window.open(`https://api.whatsapp.com/send?text=${encodedMessage}`, '_blank');
+    } else {
+        // Desktop: Use web.whatsapp.com directly to avoid "Open App" prompt/landing page
+        window.open(`https://web.whatsapp.com/send?text=${encodedMessage}`, '_blank');
+    }
   };
 
   // If loading, show spinner
@@ -405,6 +420,14 @@ const AdminDashboard = () => {
           >
             Mapa de Assentos
           </button>
+          <button
+            onClick={() => setActiveTab('tickets')}
+            className={`pb-4 px-4 font-semibold transition-colors border-b-2 ${
+              activeTab === 'tickets' ? 'border-gold text-gold' : 'border-transparent text-gray-500'
+            }`}
+          >
+            Galeria de Tickets
+          </button>
         </div>
 
         {/* --- INVITES TAB --- */}
@@ -510,6 +533,7 @@ const AdminDashboard = () => {
                                 <th className="px-6 py-3">Qtd</th>
                                 <th className="px-6 py-3">Telefone</th>
                                 <th className="px-6 py-3">Mensagem</th>
+                                <th className="px-6 py-3">Ticket</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-100">
@@ -531,6 +555,16 @@ const AdminDashboard = () => {
                                     <td className="px-6 py-4">{rsvp.guests_count}</td>
                                     <td className="px-6 py-4 text-sm font-mono">{rsvp.phone}</td>
                                     <td className="px-6 py-4 text-sm italic text-gray-600 max-w-xs truncate">{rsvp.message}</td>
+                                    <td className="px-6 py-4">
+                                        <a 
+                                            href={`https://xnsbgenkgborupwookoa.supabase.co/storage/v1/object/public/wedding-photos/tickets/ticket-${rsvp.id}.png`}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="text-blue-500 hover:text-blue-700 font-semibold text-sm flex items-center gap-1"
+                                        >
+                                           🎫 Ticket
+                                        </a>
+                                    </td>
                                 </tr>
                             ))}
                              {rsvps.length === 0 && (
@@ -543,10 +577,13 @@ const AdminDashboard = () => {
         )}
 
         {/* --- SEATING CHART TAB --- */}
-        {activeTab === 'seating' && <SeatingChart rsvps={rsvps} guestGroups={invites} />}
+        {activeTab === 'seating' && <SeatingChart rsvps={rsvps} />}
         
         {/* --- TABLE MANAGEMENT TAB --- */}
-        {activeTab === 'management' && <TableManagement rsvps={rsvps} guestGroups={invites} />}
+        {activeTab === 'management' && <TableManagement rsvps={rsvps} />}
+
+        {/* --- TICKETS GALLERY TAB --- */}
+        {activeTab === 'tickets' && <TicketsGallery rsvps={rsvps} />}
 
       </div>
 

@@ -1,20 +1,24 @@
 import React, { useMemo } from 'react';
+// eslint-disable-next-line no-unused-vars
 import { motion } from 'framer-motion';
 
+
 // Import images
-import hero from '../assets/hero.jpg';
-import coupleStanding from '../assets/couple_standing.jpg';
-import groomBeach from '../assets/groom_beach.jpg';
+import beachKiss from '../assets/beach_kiss.jpg';
+import beachHug from '../assets/beach_hug.jpg';
+import beachHoldHands from '../assets/beach_hold_hands.jpg';
+import beachSmile from '../assets/beach_smile.jpg';
 import groomBench from '../assets/groom_bench.jpg';
 import brideBench from '../assets/bride_bench.jpg';
 
 const Gallery = () => {
   const images = useMemo(() => [
-    { src: hero, alt: 'Binth & Jubílio - Hero', span: 'md:col-span-2 md:row-span-2' },
-    { src: coupleStanding, alt: 'Binth & Jubílio - Juntos', span: 'md:col-span-1 md:row-span-1' },
-    { src: groomBeach, alt: 'Jubílio na Praia', span: 'md:col-span-1 md:row-span-1' },
-    { src: groomBench, alt: 'Jubílio no Banco', span: 'md:col-span-1 md:row-span-2' },
-    { src: brideBench, alt: 'Binth no Banco', span: 'md:col-span-1 md:row-span-1' },
+    { src: beachSmile, alt: 'Nós (Praia)', span: 'md:col-span-2 md:row-span-2' },
+    { src: beachKiss, alt: 'O Beijo', span: 'md:col-span-1 md:row-span-1' },
+    { src: beachHoldHands, alt: 'Juntos', span: 'md:col-span-1 md:row-span-1' },
+    { src: beachHug, alt: 'Abraço', span: 'md:col-span-1 md:row-span-2' },
+    { src: groomBench, alt: 'O Noivo', span: 'md:col-span-1 md:row-span-1' },
+    { src: brideBench, alt: 'A Noiva', span: 'md:col-span-1 md:row-span-1' },
   ], []);
 
   return (

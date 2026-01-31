@@ -1,4 +1,5 @@
 import React, { useRef } from 'react';
+// eslint-disable-next-line no-unused-vars
 import { motion } from 'framer-motion';
 import { Download, Share2 } from 'lucide-react';
 import html2canvas from 'html2canvas';
@@ -7,7 +8,7 @@ import toast from 'react-hot-toast';
 import { supabase } from '../lib/supabase';
 import { useState } from 'react';
 
-const InvitationCard = ({ guestName, tableName, rsvpId }) => {
+const InvitationCard = ({ guestName, tableName, rsvpId, onActionComplete }) => {
   const cardRef = useRef(null);
   const [isSharing, setIsSharing] = useState(false);
 
@@ -41,6 +42,42 @@ const InvitationCard = ({ guestName, tableName, rsvpId }) => {
     return `convite-${safeName}.${extension}`;
   };
 
+  // Unified upload helper
+  const uploadTicket = async (blob) => {
+    if (!rsvpId) return null;
+    
+    // Deterministic filename: ticket-{rsvpId}.png
+    const filename = `ticket-${rsvpId}.png`;
+    const path = `tickets/${filename}`;
+    
+    try {
+      const { error: uploadError } = await supabase.storage
+        .from('wedding-photos')
+        .upload(path, blob, { 
+          contentType: 'image/png',
+          upsert: true 
+        });
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('wedding-photos')
+        .getPublicUrl(path);
+        
+      return publicUrl;
+    } catch (error) {
+      console.error("Auto-upload failed:", error);
+      return null;
+    }
+  };
+
+  const handleActionComplete = () => {
+    if (onActionComplete) {
+       // Small delay to allow download to start
+       setTimeout(onActionComplete, 2000); 
+    }
+  };
+
   const downloadAsPNG = async () => {
     if (!cardRef.current) return;
 
@@ -52,8 +89,10 @@ const InvitationCard = ({ guestName, tableName, rsvpId }) => {
         useCORS: true
       });
 
-      canvas.toBlob((blob) => {
+      canvas.toBlob(async (blob) => {
         if (!blob) return;
+        
+        // 1. Download locally
         const url = URL.createObjectURL(blob);
         const link = document.createElement('a');
         const filename = getSafeFilename(guestName, 'png');
@@ -64,6 +103,13 @@ const InvitationCard = ({ guestName, tableName, rsvpId }) => {
         link.click();
         document.body.removeChild(link);
         URL.revokeObjectURL(url);
+
+        // 2. Background Upload
+        await uploadTicket(blob);
+
+        // 3. User Feedback & Close
+        toast.success('Ticket baixado com sucesso!');
+        handleActionComplete();
       }, 'image/png');
 
     } catch {
@@ -82,6 +128,7 @@ const InvitationCard = ({ guestName, tableName, rsvpId }) => {
         useCORS: true
       });
 
+      // 1. Download PDF
       const imgData = canvas.toDataURL('image/png');
       const pdf = new jsPDF({
         orientation: 'portrait',
@@ -89,11 +136,20 @@ const InvitationCard = ({ guestName, tableName, rsvpId }) => {
         format: 'a5'
       });
 
-      const imgWidth = 148; // A5 width in mm
+      const imgWidth = 148; 
       const imgHeight = (canvas.height * imgWidth) / canvas.width;
 
       pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
       pdf.save(getSafeFilename(guestName, 'pdf'));
+      
+      // 2. Background Upload (Need blob again)
+      canvas.toBlob(async (blob) => {
+          if(blob) await uploadTicket(blob);
+      });
+
+      // 3. Close
+      toast.success('PDF baixado com sucesso!');
+      handleActionComplete();
     } catch {
       toast.error('Erro ao gerar PDF. Tente novamente.');
     }
@@ -111,33 +167,27 @@ const InvitationCard = ({ guestName, tableName, rsvpId }) => {
         useCORS: true
       });
 
-      // Convert to blob for upload
       const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
       if (!blob) throw new Error('Não foi possível gerar a imagem');
 
-      // Upload to Supabase Storage
-      const filename = `ticket-${rsvpId || 'test'}-${Date.now()}.png`;
-      const path = `tickets/${filename}`;
-      
-      const { error: uploadError } = await supabase.storage
-        .from('wedding-photos')
-        .upload(path, blob, { 
-          contentType: 'image/png',
-          cacheControl: '3600'
-        });
+      // 1. Upload
+      const publicUrl = await uploadTicket(blob);
+      if (!publicUrl) throw new Error('Erro ao salvar ticket online');
 
-      if (uploadError) throw uploadError;
-
-      // Get public URL
-      const { data: { publicUrl } } = supabase.storage
-        .from('wedding-photos')
-        .getPublicUrl(path);
-
-      // Create WhatsApp message
+      // 2. Share
       const message = `Olá! Binth & Jubílio, aqui está o meu ticket de confirmação para o vosso casamento! 💍✨\n\nTicket: ${publicUrl}\n\nMal posso esperar por este momento! ❤️`;
-      const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
+      const encodedMessage = encodeURIComponent(message);
+      
+      // Device detection logic
+      const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+      const whatsappUrl = isMobile 
+          ? `https://api.whatsapp.com/send?text=${encodedMessage}`
+          : `https://web.whatsapp.com/send?text=${encodedMessage}`;
       
       window.open(whatsappUrl, '_blank');
+      
+      // 3. Close
+      handleActionComplete();
     } catch {
       toast.error(`Erro ao compartilhar: Tente baixar o ticket manualmente.`);
     } finally {

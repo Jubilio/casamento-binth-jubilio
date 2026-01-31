@@ -63,6 +63,8 @@ ALTER TABLE public.rsvps ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Enable all access for authenticated users" ON public.invites FOR ALL TO authenticated USING (true) WITH CHECK (true);
 CREATE POLICY "Enable all access for authenticated users" ON public.guests FOR ALL TO authenticated USING (true) WITH CHECK (true);
 CREATE POLICY "Enable all access for authenticated users" ON public.rsvps FOR ALL TO authenticated USING (true) WITH CHECK (true);
+-- Allow public (anon) to read messages
+CREATE POLICY "Allow public read of messages" ON public.rsvps FOR SELECT TO anon USING (true);
 
 -- Allow public inserts/updates ONLY via Edge Functions (Service Role) which bypass RLS.
 -- However, if we want public to view invites via token, we might need a specific policy, 
@@ -77,3 +79,23 @@ CREATE POLICY "Enable all access for authenticated users" ON public.rsvps FOR AL
 CREATE INDEX IF NOT EXISTS idx_invites_token ON public.invites(token);
 CREATE INDEX IF NOT EXISTS idx_guests_invite_id ON public.guests(invite_id);
 CREATE INDEX IF NOT EXISTS idx_rsvps_invite_id ON public.rsvps(invite_id);
+
+-- 8. Create 'tables' (Mesas) for seating management
+CREATE TABLE IF NOT EXISTS public.tables (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name TEXT UNIQUE NOT NULL,
+  capacity INTEGER NOT NULL DEFAULT 10,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Enable RLS on tables
+ALTER TABLE public.tables ENABLE ROW LEVEL SECURITY;
+
+-- RLS Policies for tables
+CREATE POLICY "Enable all access for authenticated users" ON public.tables FOR ALL TO authenticated USING (true) WITH CHECK (true);
+CREATE POLICY "Allow public read" ON public.tables FOR SELECT TO anon USING (true);
+
+-- 9. Add table_assignment column to rsvps (if not exists)
+-- NOTE: Run this manually if table already exists:
+-- ALTER TABLE public.rsvps ADD COLUMN IF NOT EXISTS table_assignment TEXT;
+

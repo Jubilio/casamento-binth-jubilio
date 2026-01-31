@@ -1,6 +1,7 @@
 import React from 'react';
+// eslint-disable-next-line no-unused-vars
 import { motion } from 'framer-motion';
-import coupleStanding from '../assets/couple_standing.jpg';
+import beachPhoto from '../assets/beach_smile.jpg';
 import DecorativeDivider from '../components/DecorativeDivider';
 
 const Historia = () => {
@@ -29,7 +30,7 @@ const Historia = () => {
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: 0.3 }}
-            src={coupleStanding} 
+            src={beachPhoto} 
             alt="Binth e Jubílio" 
             className="rounded-2xl shadow-2xl max-h-96 object-cover"
           />
@@ -44,7 +45,7 @@ const Historia = () => {
             className="bg-white p-8 rounded-2xl shadow-lg border-l-4 border-gold"
           >
             <p className="text-gray-700 leading-relaxed text-lg">
-              A história deles começa muito antes de serem "nós". Começa num desejo de Jubílio, num desenho silencioso da mulher que sonhava ter ao seu lado — e num Deus que, com toda Sua graça, aprovou esse sonho.
+              Esta história começa no desejo de Jubílio, no desenho silencioso da mulher que ele sonhava ter ao seu lado, e em Deus, que com toda a Sua graça, confirmou esse sonho.
             </p>
           </motion.div>
 
@@ -164,7 +165,7 @@ const Historia = () => {
               <p className="text-gray-600 leading-relaxed mb-3">
                 2025 trouxe as famílias mais próximas, o pedido formal, o começo dos preparativos e a confirmação de que Deus estava — e sempre esteve — no centro de tudo.
               </p>
-              <p className="text-gray-600 leading-relaxed font-semibold text-gold">
+              <p className="leading-relaxed font-semibold text-gold">
                 E agora seguem firmes rumo ao grande dia: 07 de março de 2026.
               </p>
             </div>

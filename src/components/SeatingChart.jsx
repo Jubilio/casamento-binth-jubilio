@@ -1,22 +1,43 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
+// eslint-disable-next-line no-unused-vars
 import { motion, AnimatePresence } from 'framer-motion';
 import { Users, User, X } from 'lucide-react';
+import { supabase } from '../lib/supabase';
 
-const SeatingChart = ({ rsvps, guestGroups }) => {
+const SeatingChart = ({ rsvps }) => {
   const [selectedTable, setSelectedTable] = useState(null);
+  const [tables, setTables] = useState([]);
 
-  // Group confirmed RSVPs by the assigned table (invite label)
-  const tables = (guestGroups || []).map(invite => {
-    const guestsInTable = rsvps.filter(r => r.attending && r.tableAssignment === invite.label);
+  // Fetch tables from Supabase
+  const fetchTables = useCallback(async () => {
+    const { data, error } = await supabase
+      .from('tables')
+      .select('*')
+      .order('name', { ascending: true });
+    
+    if (error) {
+      console.error("Error fetching tables:", error);
+    } else {
+      setTables(data || []);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchTables();
+  }, [fetchTables]);
+
+  // Build table data with guests
+  const tableData = tables.map((table, idx) => {
+    const guestsInTable = rsvps.filter(r => r.attending && r.tableAssignment === table.name);
     const confirmedCount = guestsInTable.reduce((sum, r) => sum + (r.guests_count || 0), 0);
     
     let status = 'empty';
-    const max = 10; // Fixed 10 seats per user request
-    if (confirmedCount >= max) status = 'full';
+    if (confirmedCount >= table.capacity) status = 'full';
     else if (confirmedCount > 0) status = 'partial';
 
     return {
-      ...invite,
+      ...table,
+      index: idx,
       confirmedCount,
       status,
       guests: guestsInTable
@@ -31,15 +52,14 @@ const SeatingChart = ({ rsvps, guestGroups }) => {
     }
   };
 
-  // Helper to generate 10 seats with guest names
-  const getSeats = (tableGuests) => {
-    const seats = Array(10).fill(null);
+  // Helper to generate seats with guest names
+  const getSeats = (tableGuests, capacity) => {
+    const seats = Array(capacity).fill(null);
     let seatIndex = 0;
 
     tableGuests.forEach(rsvp => {
       for (let i = 0; i < rsvp.guests_count; i++) {
-        if (seatIndex < 10) {
-          // Only show the real name for the first seat of the group, then "Acompanhante"
+        if (seatIndex < capacity) {
           seats[seatIndex] = i === 0 ? rsvp.guestName : `${rsvp.guestName} (Acomp.)`;
           seatIndex++;
         }
@@ -69,59 +89,67 @@ const SeatingChart = ({ rsvps, guestGroups }) => {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-8">
-        {tables.map((table, idx) => (
-          <motion.div
-            key={table.id}
-            whileHover={{ scale: 1.05, y: -5 }}
-            onClick={() => setSelectedTable(table)}
-            className={`
-              relative aspect-square rounded-[2.5rem] border-2 shadow-lg cursor-pointer
-              flex flex-col items-center justify-center text-center p-4 transition-all
-              ${getStatusColor(table.status)}
-            `}
-          >
-            <div className="absolute top-2 left-1/2 -translate-x-1/2 opacity-20">
-               <Users className="w-8 h-8" />
-            </div>
+      {tableData.length === 0 ? (
+        <div className="text-center py-16">
+          <Users className="w-16 h-16 text-gray-200 mx-auto mb-4" />
+          <p className="text-gray-400 text-lg">Nenhuma mesa criada ainda.</p>
+          <p className="text-gray-300 text-sm">Vá para "Gestão de Mesas" para criar mesas.</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-8">
+          {tableData.map((table) => (
+            <motion.div
+              key={table.id}
+              whileHover={{ scale: 1.05, y: -5 }}
+              onClick={() => setSelectedTable(table)}
+              className={`
+                relative aspect-square rounded-[2.5rem] border-2 shadow-lg cursor-pointer
+                flex flex-col items-center justify-center text-center p-4 transition-all
+                ${getStatusColor(table.status)}
+              `}
+            >
+              <div className="absolute top-2 left-1/2 -translate-x-1/2 opacity-20">
+                 <Users className="w-8 h-8" />
+              </div>
 
-            <h3 className="font-bold text-xs leading-tight mb-2 uppercase tracking-tighter">
-              {table.label}
-            </h3>
-            
-            <div className="flex items-center gap-1 bg-black/10 px-2 py-0.5 rounded-full">
-               <span className="text-xs font-black">{table.confirmedCount}</span>
-               <span className="text-[10px] opacity-60">/ 10</span>
-            </div>
-            
-            {/* Minimal Seats Preview Around the card */}
-            <div className="absolute inset-0 pointer-events-none">
-                {[...Array(10)].map((_, i) => {
-                    const angle = (i * 36) * (Math.PI / 180);
-                    const x = Math.cos(angle) * 45;
-                    const y = Math.sin(angle) * 45;
-                    const isOccupied = i < table.confirmedCount;
-                    return (
-                        <div 
-                            key={i} 
-                            style={{ 
-                                left: `calc(50% + ${x}%)`, 
-                                top: `calc(50% + ${y}%)`,
-                                transform: 'translate(-50%, -50%)'
-                            }}
-                            className={`absolute w-1.5 h-1.5 rounded-full ${isOccupied ? 'bg-white' : 'bg-gray-200 border border-gray-300'}`}
-                        />
-                    );
-                })}
-            </div>
+              <h3 className="font-bold text-xs leading-tight mb-2 uppercase tracking-tighter">
+                {table.name}
+              </h3>
+              
+              <div className="flex items-center gap-1 bg-black/10 px-2 py-0.5 rounded-full">
+                 <span className="text-xs font-black">{table.confirmedCount}</span>
+                 <span className="text-[10px] opacity-60">/ {table.capacity}</span>
+              </div>
+              
+              {/* Minimal Seats Preview Around the card */}
+              <div className="absolute inset-0 pointer-events-none">
+                  {[...Array(table.capacity)].map((_, i) => {
+                      const angle = (i * (360 / table.capacity)) * (Math.PI / 180);
+                      const x = Math.cos(angle) * 45;
+                      const y = Math.sin(angle) * 45;
+                      const isOccupied = i < table.confirmedCount;
+                      return (
+                          <div 
+                              key={i} 
+                              style={{ 
+                                  left: `calc(50% + ${x}%)`, 
+                                  top: `calc(50% + ${y}%)`,
+                                  transform: 'translate(-50%, -50%)'
+                              }}
+                              className={`absolute w-1.5 h-1.5 rounded-full ${isOccupied ? 'bg-white' : 'bg-gray-200 border border-gray-300'}`}
+                          />
+                      );
+                  })}
+              </div>
 
-            {/* Table Badge */}
-            <div className="absolute -top-3 -right-3 w-8 h-8 bg-gold text-white rounded-xl flex items-center justify-center text-[10px] font-black shadow-lg border-2 border-white">
-              {idx + 1}
-            </div>
-          </motion.div>
-        ))}
-      </div>
+              {/* Table Badge */}
+              <div className="absolute -top-3 -right-3 w-8 h-8 bg-gold text-white rounded-xl flex items-center justify-center text-[10px] font-black shadow-lg border-2 border-white">
+                {table.index + 1}
+              </div>
+            </motion.div>
+          ))}
+        </div>
+      )}
 
       {/* Modal - Detailed Table View */}
       <AnimatePresence>
@@ -147,13 +175,13 @@ const SeatingChart = ({ rsvps, guestGroups }) => {
               <div className="bg-gradient-to-br from-gold/10 to-transparent p-10 text-center border-b border-gray-100">
                 <p className="text-[10px] uppercase font-black tracking-[0.2em] text-gold mb-3">Mesa Reservada</p>
                 <h3 className="text-4xl font-serif font-bold italic text-gray-800 mb-2">
-                  {selectedTable.label}
+                  {selectedTable.name}
                 </h3>
                 <div className="flex justify-center gap-2 mt-4">
                   <span className={`px-4 py-1 rounded-full text-xs font-bold ${
                     selectedTable.status === 'full' ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-600'
                   }`}>
-                    {selectedTable.confirmedCount} / 10 Lugares Ocupados
+                    {selectedTable.confirmedCount} / {selectedTable.capacity} Lugares Ocupados
                   </span>
                 </div>
               </div>
@@ -161,7 +189,7 @@ const SeatingChart = ({ rsvps, guestGroups }) => {
               <div className="p-8">
                 {/* Visual Seat Representation */}
                 <div className="grid grid-cols-2 gap-3">
-                  {getSeats(selectedTable.guests).map((guestName, idx) => (
+                  {getSeats(selectedTable.guests, selectedTable.capacity).map((guestName, idx) => (
                     <div 
                       key={idx} 
                       className={`flex items-center gap-3 p-3 rounded-xl border transition-all ${

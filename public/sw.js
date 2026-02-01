@@ -26,13 +26,19 @@ self.addEventListener('install', (event) => {
 
 // Fetch event - Network first, fallback to cache
 self.addEventListener('fetch', (event) => {
-  // Skip cross-origin requests for certain internal logic if needed
-  // For now, focus on fixing the TypeError
+  const url = new URL(event.request.url);
+
+  // OPTION PROFESSIONAL: Ignore Google Fonts in the SW to avoid CSP/fetch issues
+  // Let the browser handle these natively.
+  if (url.hostname.includes('fonts.gstatic.com') || url.hostname.includes('fonts.googleapis.com')) {
+    return;
+  }
+
   event.respondWith(
     fetch(event.request)
       .then((response) => {
-        // Cache successful GET responses from our own origin or trusted ones
-        if (response.status === 200 && event.request.method === 'GET') {
+        // Cache successful GET responses from our own origin
+        if (response.status === 200 && event.request.method === 'GET' && url.origin === self.location.origin) {
           const responseClone = response.clone();
           caches.open(CACHE_NAME)
             .then((cache) => {
@@ -44,22 +50,17 @@ self.addEventListener('fetch', (event) => {
       })
       .catch(async () => {
         // Fallback to cache if network fails
-        try {
-          const cache = await caches.open(CACHE_NAME);
-          const cachedResponse = await cache.match(event.request);
-          
-          if (cachedResponse) {
-            return cachedResponse;
-          }
-        } catch (e) {
-          console.error('Cache access failed:', e);
+        const cache = await caches.open(CACHE_NAME);
+        const cachedResponse = await cache.match(event.request);
+        
+        if (cachedResponse) {
+          return cachedResponse;
         }
 
-        // Return a basic fallback response to avoid "TypeError: Failed to convert value to 'Response'"
-        // This ensures the site stays functional (though possibly with missing assets)
-        return new Response('Offline / Network Error', {
-          status: 408,
-          headers: { 'Content-Type': 'text/plain' }
+        // Return a clean No Content instead of crashing
+        return new Response('', {
+          status: 204,
+          statusText: 'No Content'
         });
       })
   );

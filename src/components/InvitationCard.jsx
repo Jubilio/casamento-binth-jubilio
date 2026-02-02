@@ -136,7 +136,7 @@ const InvitationCard = ({ guestName, tableName, rsvpId, onActionComplete }) => {
       if (!publicUrl) throw new Error('Erro ao salvar ticket online');
 
       // 2. Share
-      const message = `Olá! Binth & Jubílio, aqui está o meu ticket de confirmação para o vosso casamento! 💍✨\n\nTicket: ${publicUrl}\n\nMal posso esperar por este momento! ❤️`;
+      const message = `Olá Binth & Jubílio! 💍✨\n\nAqui está o ticket de confirmação de *${guestName}*.\nMesa: *${eventDetails.fullTableName}*\n\nTicket: ${publicUrl}\n\nMal podemos esperar por este momento! ❤️`;
       const encodedMessage = encodeURIComponent(message);
       
       // Device detection logic

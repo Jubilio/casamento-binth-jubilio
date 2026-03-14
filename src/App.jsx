@@ -141,10 +141,50 @@ const AppContent = () => {
         {!isSplash && <MusicPlayer />}
         {!isSplash && <MessagesButton />}
         {!isSplash && <MobileBottomNav />}
+        {!isSplash && <QuizTrigger />}
+        {!isSplash && <PWAInstallPrompt />}
       </div>
     </ErrorBoundary>
   );
 }
+
+const QuizTrigger = () => {
+  const [isQuizOpen, setIsQuizOpen] = useState(false);
+  const location = useLocation();
+
+  useEffect(() => {
+    // Don't trigger on splash or admin pages
+    const excludedPaths = ['/', '/gestao-casamento-2026', '/ticket'];
+    const isExcluded = excludedPaths.some(path => location.pathname.startsWith(path));
+    
+    if (isExcluded) return;
+
+    // Check if quiz was already shown in this session
+    const quizShown = sessionStorage.getItem('wedding_quiz_shown');
+    
+    if (!quizShown) {
+      const timer = setTimeout(() => {
+        setIsQuizOpen(true);
+        sessionStorage.setItem('wedding_quiz_shown', 'true');
+      }, 8000); // Trigger after 8 seconds of interaction
+
+      return () => clearTimeout(timer);
+    }
+  }, []); // Only run once on mount to avoid reset on navigation
+
+  return (
+    <Suspense fallback={null}>
+      <QuizPopup 
+        isOpen={isQuizOpen} 
+        onClose={() => setIsQuizOpen(false)} 
+      />
+    </Suspense>
+  );
+};
+
+const QuizPopup = lazy(() => import('./components/QuizPopup'));
+const PWAInstallPrompt = lazy(() => import('./components/PWAInstallPrompt'));
+
 
 function AppWrapper() {
   return (
